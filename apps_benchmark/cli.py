@@ -644,43 +644,66 @@ def _run_category_benchmarks(
         raise SystemExit(1)
 
     available_runner_names = _get_available_runner_names(category, builtin, diy)
+    runnable_cases: list[tuple[dict, BenchmarkCase, str]] = []
+    open_skipped = 0
+    algorithm_filtered = 0
+
+    for case_info in filtered_cases:
+        case_path = Path(case_info["file"])
+        try:
+            problem = BenchmarkCase.load_from_database(case_path)
+        except Exception as exc:
+            click.echo(f"Warning: Failed to load case {case_path.name}", err=True)
+            click.echo(f"Skipping case {case_path.name}: {exc}", err=True)
+            continue
+
+        if algorithm and algorithm not in problem.solution_algorithms:
+            algorithm_filtered += 1
+            continue
+
+        try:
+            runner_name = _select_solution_algorithm(problem, available_runner_names, algorithm)
+        except OpenBenchmarkError:
+            open_skipped += 1
+            continue
+        except BenchmarkError as exc:
+            click.echo(
+                f"\nError selecting algorithm for benchmark case '{problem.instance_name}': {exc}",
+                err=True,
+            )
+            raise SystemExit(1) from exc
+
+        runnable_cases.append((case_info, problem, runner_name))
+
     filtered_out_count = len(benchmark_cases) - len(filtered_cases)
     click.echo(
         f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})"
     )
-    click.echo(f"\nFound {len(filtered_cases)} benchmark(s) to run:")
-    for case_info in filtered_cases:
+    if algorithm_filtered:
+        click.echo(
+            f"Found {algorithm_filtered} benchmark(s) not to run "
+            f"(filtered by --algorithm={algorithm})"
+        )
+    if open_skipped:
+        click.echo(
+            "Found "
+            f"{open_skipped} open benchmark case(s) not to run (require user-provided solvers)"
+        )
+    click.echo(f"\nFound {len(runnable_cases)} benchmark(s) to run:")
+    for case_info, _, _ in runnable_cases:
         click.echo(f"  - {case_info['name']} (UUID: {case_info['uuid']})")
     click.echo("")
 
     # Run all benchmarks
     results: list[BenchmarkSubmissionRecord] = []
-    open_skipped = 0
-    total = len(filtered_cases)
+    total = len(runnable_cases)
 
-    for idx, case_info in enumerate(filtered_cases, 1):
-        case_path = Path(case_info["file"])
+    for idx, (case_info, problem, runner_name) in enumerate(runnable_cases, 1):
         case_name = case_info["name"]
 
         click.echo(f"[{idx}/{total}] Running {case_name}...", nl=False)
 
         try:
-            # Load problem instance
-            problem = BenchmarkCase.load_from_database(case_path)
-
-            if algorithm and algorithm not in problem.solution_algorithms:
-                click.echo(
-                    f" skipped (algorithm '{algorithm}' not in {problem.solution_algorithms})"
-                )
-                continue
-
-            try:
-                runner_name = _select_solution_algorithm(problem, available_runner_names, algorithm)
-            except OpenBenchmarkError as exc:
-                open_skipped += 1
-                click.echo(f" skipped ({exc})")
-                continue
-
             # Load runner
             runner = _load_runner(category, runner_name)
 
