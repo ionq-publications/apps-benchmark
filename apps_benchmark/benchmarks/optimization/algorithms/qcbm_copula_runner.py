@@ -270,7 +270,7 @@ def convert_to_real_space(
             scale,
         )
 
-    return real_space * stds + means
+    return np.asarray(real_space * stds + means, dtype=float)
 
 
 def _get_ansatz_family(benchmark_case: BenchmarkCase) -> str:

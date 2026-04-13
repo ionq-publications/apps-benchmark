@@ -5,30 +5,18 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
-from qiskit import QuantumCircuit
-from qiskit.circuit import Gate
-
-from apps_benchmark.core.backend import MeasurementBatch
-from apps_benchmark.core.qc_benchmark_runner import CircuitBenchmarkRunner
-from apps_benchmark.primitives.benchmark_case import BenchmarkCase
-
 ###############################################################################
 # MIT License
-
 # portions of this are Copyright (c) 2020 alibaba-edu
 # portions of this are Copyright (c) 2021 MIT
-
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,11 +25,19 @@ from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 ###############################################################################
-
 # Generate the polynonial to fit the Heavyside step function using pyqsp
 # The following code assumes pyqsp version 0.1.6
-import pyqsp  # noqa: F401
-from pyqsp.angle_sequence import Polynomial, QuantumSignalProcessingPhases  # noqa: F401
+import pyqsp  # type: ignore[import-untyped]  # noqa: F401
+from pyqsp.angle_sequence import (  # type: ignore[import-untyped]  # noqa: F401
+    Polynomial,
+    QuantumSignalProcessingPhases,
+)
+from qiskit import QuantumCircuit
+from qiskit.circuit import Gate
+
+from apps_benchmark.core.backend import MeasurementBatch
+from apps_benchmark.core.qc_benchmark_runner import CircuitBenchmarkRunner
+from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 
 
 class FaaRunner(CircuitBenchmarkRunner):
@@ -108,7 +104,7 @@ class FaaRunner(CircuitBenchmarkRunner):
         # Measurement outcomes from FAA circuit
         counts_dict = measurements[0]
         total_shots = sum(counts_dict.values())
-        probs = {}
+        probs: dict[str, int | float] = {}
         for state, counts in counts_dict.items():
             state_trunc = state[-num_qubits:]
             if state_trunc in probs:
@@ -155,7 +151,7 @@ def proj_cnot_t(nq: int, phi: float, target: str = "", idx: int = 0) -> Gate:
 
     controls = list(range(0, nq))
     control_state = "1" * nq
-    ancilla_qubits = [i for i in range(nq + 1, num_qubits)]
+    ancilla_qubits = list(range(nq + 1, num_qubits))
     control_idxs = [idx for (idx, bit) in enumerate(target[::-1]) if bit == "0"]
     for q in control_idxs:
         qc.x(q)
@@ -175,7 +171,7 @@ def proj_cnot_0(nq: int, phi: float, idx: int = 0) -> Gate:
     qc = QuantumCircuit(num_qubits)
     controls = list(range(0, nq))
     control_state = "1" * nq
-    ancilla_qubits = [i for i in range(nq + 1, num_qubits)]
+    ancilla_qubits = list(range(nq + 1, num_qubits))
     for q in range(nq):
         qc.x(q)
     qc.mcx(controls, nq, ancilla_qubits=ancilla_qubits, mode="v-chain", ctrl_state=control_state)

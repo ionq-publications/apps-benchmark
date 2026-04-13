@@ -10,7 +10,9 @@ International (CC BY-NC-ND 4.0) License.
 For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 
+import importlib
 import json
+import warnings
 from pathlib import Path
 
 import pytest
@@ -150,6 +152,27 @@ class TestDiscoverBuiltinBenchmarks:
             assert "benchmark_cases" in info
             assert isinstance(info["runners"], list)
             assert isinstance(info["benchmark_cases"], list)
+
+    @pytest.mark.parametrize(
+        "module_name",
+        [
+            "apps_benchmark.benchmarks.qft.algorithms.cosine_qft_runner",
+            "apps_benchmark.benchmarks.qft.algorithms.hidden_phase_qft_runner",
+        ],
+    )
+    def test_qft_runner_import_is_warning_free(self, module_name: str):
+        """Test that importing the QFT runners does not emit deprecation warnings."""
+        module = importlib.import_module(module_name)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            importlib.reload(module)
+
+        assert not any(
+            issubclass(warning.category, DeprecationWarning)
+            and "QFT" in str(warning.message)
+            for warning in caught
+        )
 
     def test_discover_builtin_benchmarks_fails_on_missing_instance_id(self, tmp_path, monkeypatch):
         """Test corrupted builtin problem instances fail discovery."""

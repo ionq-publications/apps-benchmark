@@ -27,7 +27,7 @@ class BenchmarkCase:
     Instances are typically loaded from JSON files.
 
     Attributes:
-        benchmark_category: Category name (e.g., "chemistry", "cryptography")
+        benchmark_category: Category name (e.g., "chemistry", "qft")
         problem_type: Type of problem (e.g., "hydrogen_lattice_vqe", "qft")
         instance_name: Human-readable name for this specific instance
         num_qubits: Number of qubits required to run this problem

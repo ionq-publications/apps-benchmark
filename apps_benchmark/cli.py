@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import cast
 
 import click
-from qiskit_ionq import IonQProvider
 
 from apps_benchmark.core.backend import AbstractBackend
 from apps_benchmark.core.benchmark import AbstractAlgoRunner, BenchmarkSubmissionRecord
@@ -75,11 +74,11 @@ def _get_shots_for_case(bm_case: BenchmarkCase) -> int | None:
             raise ValueError(f"Error: shots in BenchmarkCase '{bm_case.instance_name}' must be a positive integer. "
                              f"Got {config_shots}")
         return config_shots
-    return None 
+    return None
 
 
 # hacky but unblocks timeline
-def _get_ionq_backend_api_key():
+def _get_ionq_backend_api_key() -> str:
     """
     Get IonQ API key from environment variable.
 
@@ -168,7 +167,7 @@ def _load_backend(backend_name: str) -> AbstractBackend:
             backend_class = cast(type[AbstractBackend], getattr(module, str(backend_info["class"])))
             backend_instance = backend_class()
 
-        return backend_instance
+        return cast(AbstractBackend, backend_instance)
 
     except Exception as exc:
         raise BackendError(f"Failed to load backend '{backend_name}': {exc}") from exc
@@ -363,7 +362,7 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
             click.echo(f"  Available algorithms: {', '.join(problem.solution_algorithms)}")
             click.echo(f"  Using algorithm: {runner_name}")
             if not algorithm:
-                click.echo(f"  ℹ  Use --algorithm to select a different solution algorithm")
+                click.echo("  ℹ  Use --algorithm to select a different solution algorithm")
         else:
             click.echo(f"  Algorithm: {problem.solution_algorithms[0]}")
     except Exception as exc:
@@ -462,7 +461,7 @@ def _display_category_results(results: list, category: str, backend_name: str, s
     click.echo("-" * 60)
 
     #list them alphabetically by problem name( which should lead by count, by convention)
-    for result in sorted(results, key=lambda r: r.instance_name):                                                 
+    for result in sorted(results, key=lambda r: r.instance_name):
         problem_name = result.instance_name[:24]  # Truncate if too long
         algo_name = result.solution_algorithm[:14]
         score_str = f"{result.score:.6f}"
@@ -516,7 +515,7 @@ def _run_category_benchmarks(
 
     # Add DIY benchmark cases if category exists in DIY
     if category in diy:
-        for runner_name, runner_info in diy[category].items():
+        for _runner_name, runner_info in diy[category].items():
             benchmark_cases.extend(runner_info.get("benchmark_cases", []))
 
     if not benchmark_cases:
@@ -542,7 +541,7 @@ def _run_category_benchmarks(
     if not filtered_cases:
         click.echo(f"\nNo benchmark cases found with num_qubits <= {qbit_max}", err=True)
         raise SystemExit(1)
-    
+
     filtered_out_count = len(benchmark_cases) - len(filtered_cases)
     click.echo(f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})")
     click.echo(f"\nFound {len(filtered_cases)} benchmark(s) to run:")
@@ -651,7 +650,7 @@ def main() -> None:
 )
 @click.option(
     "--shots",
-    "cli_shots", #use a different name to avoid confusion with other ways shots is set 
+    "cli_shots",  # use a different name to avoid confusion with other ways shots is set
     type=click.IntRange(min=1),
     default=None,
     help="User-specified number of shots per circuit (default: config-specific, benchmark-specific, else 1000)",

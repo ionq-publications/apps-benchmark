@@ -12,12 +12,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from qiskit.quantum_info import Statevector
-
 from apps_benchmark.benchmarks.hidden_shift.algorithms.hidden_shift_runner import HiddenShiftRunner
 from apps_benchmark.cli import _find_benchmark_case_by_uuid, _load_builtin_runner
 from apps_benchmark.core.registry import _discover_builtin_benchmarks
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase
+from qiskit.quantum_info import Statevector
 
 
 def assert_unmeasured(circuit) -> None:
@@ -46,7 +45,7 @@ class SeededSamplingBackend:
             weights /= weights.sum()
             draws = self._rng.choice(len(bitstrings), size=int(shots), p=weights)
             unique_idx, counts = np.unique(draws, return_counts=True)
-            histograms.append({bitstrings[i]: int(c) for i, c in zip(unique_idx, counts)})
+            histograms.append({bitstrings[i]: int(c) for i, c in zip(unique_idx, counts, strict=True)})
         self._calls += 1
         return histograms, f"job-{self._calls}", {"calls": self._calls}
 

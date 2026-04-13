@@ -14,7 +14,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-
 from apps_benchmark.backends.qiskit_aer_sim_backend import QiskitAerSimBackend
 from apps_benchmark.benchmarks.chemistry.algorithms.vqe_puccd_runner import VqePuccdRunner
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase

@@ -16,7 +16,6 @@ from apps_benchmark.cli import main
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 from click.testing import CliRunner
 
-
 CHEMISTRY_CASES_DIR = (
     Path(__file__).resolve().parents[2]
     / "apps_benchmark"
