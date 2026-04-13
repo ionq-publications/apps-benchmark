@@ -151,6 +151,18 @@ class TestDiscoverBuiltinBenchmarks:
             assert isinstance(info["runners"], list)
             assert isinstance(info["benchmark_cases"], list)
 
+    def test_discover_builtin_benchmarks_includes_computational_fluid_dynamics(self):
+        """Test the CFD benchmark category is discoverable with its benchmark case."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        assert "computational_fluid_dynamics" in benchmarks
+
+        info = benchmarks["computational_fluid_dynamics"]
+        assert info["runners"] == []
+        assert len(info["benchmark_cases"]) == 1
+        assert info["benchmark_cases"][0]["name"] == "16by16_2d_advection_diffusion"
+        assert info["benchmark_cases"][0]["uuid"] == "7a7a9cc4"
+
     def test_discover_builtin_benchmarks_fails_on_missing_instance_id(self, tmp_path, monkeypatch):
         """Test corrupted builtin problem instances fail discovery."""
         package_root = tmp_path / "mock_benchmarks"
