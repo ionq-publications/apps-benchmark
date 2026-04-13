@@ -337,7 +337,8 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
         algorithm: Solution algorithm to use. If specified, must be in the benchmark's
                    solution_algorithms list. If None, uses the first algorithm in the list.
                    Use this to select alternative solution methods for benchmarks that
-                   support multiple approaches (e.g., 'qft_lcu' instead of 'qft').
+                   support multiple approaches (e.g., 'hidden_phase_qft' instead of
+                   'cosine_qft').
     """
     click.echo(f"\nSearching for problem instance '{uuid}'...")
 
@@ -672,7 +673,7 @@ def main() -> None:
     "--algorithm",
     type=str,
     default=None,
-    help="Solution algorithm to use when multiple are available (e.g., 'qft_lcu', 'lr_qaoa'). "
+    help="Solution algorithm to use when multiple are available (e.g., 'hidden_phase_qft', 'lr_qaoa'). "
          "Use this to select alternative algorithms for benchmark cases that support multiple solution methods. "
          "Defaults to the first algorithm listed in the benchmark case.",
 )
@@ -712,7 +713,7 @@ def run(
 
     \b
     # Run a specific benchmark with a specific solution algorithm
-    apps-benchmark run --backend=qiskit --case-uuid=610cfb55 --algorithm=qft_lcu
+    apps-benchmark run --backend=qiskit --case-uuid=f75ae75f --algorithm=hidden_phase_qft
 
     \b
     # Save configuration
