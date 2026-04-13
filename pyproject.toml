@@ -72,10 +72,15 @@ include = ["apps_benchmark*"]
 apps_benchmark = [
     "benchmarks/*/asset_manifest.json",
     "benchmarks/*/benchmark_cases/*.json",
+    "benchmarks/*/benchmark_cases/*.gml",
+    "benchmarks/*/benchmark_cases/*/*.json",
     "benchmarks/*/benchmark_cases/*.qasm3",
     "benchmarks/*/assets/*.json",
     "benchmarks/*/assets/*.png",
     "benchmarks/*/assets/*.qpy",
+    "benchmarks/*/assets/*.npy",
+    "benchmarks/*/assets/*.txt",
+    "benchmarks/*/assets/*/*.qpy",
 ]
 
 [tool.pytest.ini_options]

@@ -115,7 +115,17 @@ For detailed DIY plugin instructions, see [DIY Benchmark](docs/DIY_BENCHMARK.md)
 - Qubit scaling: 3 qubits per variable, for 15 to 30 qubits total
 - Training/evaluation narrative: QCBM trained in copula space with MMD and a Gaussian kernel of width `sigma = 1`, then mapped back to real space with inverse Student-t marginals to estimate out-of-sample 95% VaR
 - Scoring: `min(VaR_ratio, 1 / VaR_ratio)`, where `VaR_ratio` is generated VaR divided by stored reference VaR
-- Closed-benchmark behavior: the shipped cases store the reference VaR directly, so benchmark execution is deterministic and does not download market data at runtime
+- Closed-benchmark behavior: the cases store the reference VaR directly, so benchmark execution is deterministic and does not download market data at runtime
+
+## Built-in Benchmarks
+
+### QCNN
+
+- Runner: `qcnn`
+- Benchmark cases: `apps_benchmark/benchmarks/qcnn/benchmark_cases/qcnn_*.instance.json`
+- Task: binary MNIST classification with four fixed cases at `3x3` and `4x4` image size
+- Runtime: one image produces three circuits for `X`, `Y`, and `Z`, then the three observables feed a fixed `3 -> 2 -> 2` classifier
+- Score: classification accuracy on the 50-example evaluation slice stored with each case
 
 ## Backend setup for IonQ cloud
 For using IonQ Cloud Backend, simulator or live, you will need to set the
