@@ -46,6 +46,7 @@ class BenchmarkCase:
     num_qubits: int
     solution_algorithms: list[str]
     data: dict[str, Any]
+    open_solution_algorithms: list[str] | None = None
     instance_id: str | None = None
 
     def __post_init__(self) -> None:
