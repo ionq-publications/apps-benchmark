@@ -1,0 +1,111 @@
+{
+  "benchmark": "image_loading",
+  "precompiled_assets": true,
+  "construction_pipeline_included": false,
+  "notes": [
+    "This benchmark ships precompiled .qpy circuits and image assets.",
+    "The circuit-generation code is not included in this repo.",
+    "The benchmark score is the minimum MSE across the configured depth sweep for each image.",
+    "All shipped local assets are recorded here with SHA-256 hashes."
+  ],
+  "images": {
+    "mnist_5": {
+      "image_name": "mnist_5.png",
+      "dimensions": [
+        32,
+        32
+      ],
+      "sha256": "3e81eb7d55f97031c7e247aca65c1c41f3e639a95de5d4f63bce1dcb6a44b594",
+      "depth_cases": [
+        {
+          "depth": 1,
+          "circuit_name": "mnist_5_D1.qpy",
+          "sha256": "fee31a7ef8c0129cd55b106b19656d55b1d363127e91de25c9fc5cbea9bd5627"
+        },
+        {
+          "depth": 2,
+          "circuit_name": "mnist_5_D2.qpy",
+          "sha256": "bcd5f6f44f52b74705a7f8f2e550c9cb409e3d0fcd87cf4df3d12bc2ad14aae0"
+        },
+        {
+          "depth": 3,
+          "circuit_name": "mnist_5_D3.qpy",
+          "sha256": "5e84b4139ec5c3742c71dcf8ace8081478d536b98a736fed7c7f07601a1bab8f"
+        },
+        {
+          "depth": 4,
+          "circuit_name": "mnist_5_D4.qpy",
+          "sha256": "94e5d5c437dd983a1c3f785a5b7a5bda9527f17e35d30dfc9bc0d68f65cc61c2"
+        },
+        {
+          "depth": 5,
+          "circuit_name": "mnist_5_D5.qpy",
+          "sha256": "627a9f4783c386ff32c79f0e05e3a5fa3b5dd4b3268eb8f820fd41a4a8d2024d"
+        },
+        {
+          "depth": 6,
+          "circuit_name": "mnist_5_D6.qpy",
+          "sha256": "599ac6d51c66cea12a55ad01c7daf578452170fb6366f4577ba2ca085a0fb19c"
+        }
+      ]
+    },
+    "imagenet_sketch_shark": {
+      "image_name": "imagenet_sketch_shark.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "sha256": "a3638b9b83d174f58d76b7cf73ff813dc8a0864749e0a3d63370cb9787ba71d8",
+      "description": "Thresholded shark outline image used for the shipped ImageNet-Sketch case.",
+      "depth_cases": [
+        {
+          "depth": 3,
+          "circuit_name": "imagenet_sketch_shark_D3.qpy",
+          "sha256": "32d06eadcb77f2a6c2a2d886059ee9be700a6bcd324008ec8ae6cae9347e7230"
+        },
+        {
+          "depth": 4,
+          "circuit_name": "imagenet_sketch_shark_D4.qpy",
+          "sha256": "9206d2a730262622ea2a1f13ab0fcd85a54851d2beafe7b6d3af1c43941bd934"
+        },
+        {
+          "depth": 5,
+          "circuit_name": "imagenet_sketch_shark_D5.qpy",
+          "sha256": "f90bb35d98d672034dff3c98aebb8ef18040a17aaf33c96af29e4ffbb2a9584c"
+        },
+        {
+          "depth": 6,
+          "circuit_name": "imagenet_sketch_shark_D6.qpy",
+          "sha256": "6bb97eba359706c9ec77f5e9948db8c3e7b40c8e723929815cf7a86fbce91ce3"
+        },
+        {
+          "depth": 7,
+          "circuit_name": "imagenet_sketch_shark_D7.qpy",
+          "sha256": "6a7fb3e590cb08c548a16eb3c8f3c130f96a0f8d2239203787a3a7164db7cca5"
+        },
+        {
+          "depth": 9,
+          "circuit_name": "imagenet_sketch_shark_D9.qpy",
+          "sha256": "b7b855d9e46dbb7aa71cfb61f8b2ad4d4cbf3144cdb3ebce5d60193304b38585"
+        },
+        {
+          "depth": 11,
+          "circuit_name": "imagenet_sketch_shark_D11.qpy",
+          "sha256": "2d92e540ad8059bb5dc493ac1b16a6eb776dc7af1b83f1edc546746687dc04a7"
+        },
+        {
+          "depth": 13,
+          "circuit_name": "imagenet_sketch_shark_D13.qpy",
+          "sha256": "1ecf09543b701d49bf4db18f092f13ed79a650a7008fce56001192703eaf429b"
+        }
+      ]
+    }
+  },
+  "extra_assets": [
+    {
+      "name": "unused_imagenet_sketch_shark_D10.qpy",
+      "sha256": "58d32a11705e4dc75fbf57c4fe8e100c193217434d594f6675ed58e3d1d5b1ec",
+      "status": "excluded_from_depth_sweep"
+    }
+  ]
+}

@@ -1,0 +1,246 @@
+name: Generate HTML Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-to-html.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Create output directory
+        run: mkdir -p docs_html
+
+      - name: Copy CSS file
+        run: |
+          cat > docs_html/style.css << 'EOF'
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            color: #333;
+          }
+
+          h1 {
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 0.5rem;
+            color: #0066cc;
+          }
+
+          h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.3rem;
+            margin-top: 2rem;
+          }
+
+          h3 {
+            color: #555;
+            margin-top: 1.5rem;
+          }
+
+          code {
+            background-color: #f4f4f4;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.9em;
+          }
+
+          pre {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 3px solid #0066cc;
+          }
+
+          pre code {
+            background-color: transparent;
+            padding: 0;
+          }
+
+          a {
+            color: #0066cc;
+            text-decoration: none;
+          }
+
+          a:hover {
+            text-decoration: underline;
+          }
+
+          blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 1rem;
+            margin-left: 0;
+            color: #666;
+          }
+
+          table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+          }
+
+          th, td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: left;
+          }
+
+          th {
+            background-color: #f4f4f4;
+            font-weight: 600;
+          }
+
+          .header {
+            background-color: #0066cc;
+            color: white;
+            padding: 1rem;
+            margin: -2rem -2rem 2rem -2rem;
+            border-radius: 5px 5px 0 0;
+          }
+
+          .header h1 {
+            margin: 0;
+            border: none;
+            color: white;
+          }
+
+          .nav {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+          }
+
+          .nav a {
+            margin-right: 1rem;
+          }
+
+          @media (max-width: 768px) {
+            body {
+              padding: 1rem;
+            }
+
+            .header {
+              margin: -1rem -1rem 1rem -1rem;
+            }
+          }
+          EOF
+
+      - name: Convert Markdown to HTML
+        run: |
+          for md_file in docs/*.md; do
+            if [ -f "$md_file" ]; then
+              filename=$(basename "$md_file")
+              base_name="${filename%.*}"
+
+              # Create HTML with pandoc
+              pandoc "$md_file" \
+                --from=gfm \
+                --to=html5 \
+                --standalone \
+                --css=style.css \
+                --metadata title="$base_name - apps-benchmark" \
+                --output="docs_html/${base_name}.html"
+
+              echo "Converted: $md_file -> docs_html/${base_name}.html"
+            fi
+          done
+
+      - name: Create index page
+        run: |
+          cat > docs_html/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>apps-benchmark Documentation</title>
+            <link rel="stylesheet" href="style.css">
+          </head>
+          <body>
+            <div class="header">
+              <h1>apps-benchmark Documentation</h1>
+              <p>IonQ Quantum Application Benchmarking Framework</p>
+            </div>
+
+            <h2>Overview</h2>
+            <ul>
+              <li><a href="README.html">Documentation Index</a> - Overview of all documentation</li>
+              <li><a href="API_REFERENCE.html">API Reference</a> - API documentation for developers</li>
+            </ul>
+
+            <h2>Developer Guides</h2>
+            <ul>
+              <li><a href="DIY_GUIDE.html">DIY Guide</a> - Quick start for custom components</li>
+              <li><a href="DIY_BENCHMARK.html">DIY Benchmark</a> - Create custom benchmark algorithms</li>
+              <li><a href="DIY_BACKEND.html">DIY Backend</a> - Create custom quantum backends</li>
+              <li><a href="DIY_REGISTRY.html">DIY Registry</a> - Register custom components</li>
+              <li><a href="TESTING.html">Testing Guide</a> - Testing strategies and best practices</li>
+            </ul>
+
+            <h2>Project Information</h2>
+            <ul>
+              <li><a href="CONTRIBUTING.html">Contributing Guidelines</a> - How to contribute to the project</li>
+              <li><a href="CHANGELOG.html">Changelog</a> - Version history and updates</li>
+              <li><a href="LICENSE.html">License</a> - Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)</li>
+            </ul>
+
+            <h2>Quick Links</h2>
+            <ul>
+              <li><a href="https://github.com/ionq/apps-benchmark">GitHub Repository</a></li>
+              <li><a href="../README.md">Main README</a></li>
+            </ul>
+
+            <hr>
+            <p style="color: #666; font-size: 0.9em;">
+              Generated by apps-benchmark documentation system |
+              <a href="https://ionq.com">IonQ</a>
+            </p>
+          </body>
+          </html>
+          EOF
+
+      - name: List generated files
+        run: ls -lh docs_html/
+
+      - name: Upload HTML artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-html
+          path: docs_html/
+          retention-days: 90
+
+      - name: Deploy to GitHub Pages (main branch only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs_html
+          publish_branch: gh-pages
+          commit_message: 'docs: Update documentation HTML'

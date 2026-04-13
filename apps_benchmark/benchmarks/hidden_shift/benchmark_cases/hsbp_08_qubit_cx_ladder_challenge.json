@@ -1,0 +1,1 @@
+{"benchmark_category": "hidden_shift", "problem_type": "hidden_shift_cx_ladder", "instance_name": "hsbp_08q_cx_ladder", "num_qubits": 8, "solution_algorithms": ["hidden_shift"], "data": {"permutation": "cx_ladder", "shifts": ["11011111", "01100100", "10000111", "10111111", "10110011", "11011110", "11110111", "11111111", "01100000", "00010111"]}, "instance_id": "92a49832"}

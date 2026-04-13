@@ -1,0 +1,47 @@
+NOTICE
+
+IonQ Apps-Benchmark
+Copyright (c) 2025 IonQ, Inc.
+
+This software is licensed under the Creative Commons Attribution-NonCommercial-
+NoDerivatives 4.0 International (CC BY-NC-ND 4.0) License.
+
+For details on this license, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
+
+Third-Party Licenses
+--------------------
+
+This project includes or depends on components with the following licenses:
+
+- Qiskit (Apache 2.0)
+  https://github.com/Qiskit/qiskit
+
+- Qiskit Aer (Apache 2.0)
+  https://github.com/Qiskit/qiskit-aer
+
+- Qiskit IonQ (Apache 2.0)
+  https://github.com/qiskit-community/qiskit-ionq
+
+- Click (BSD 3-Clause)
+  https://github.com/pallets/click
+
+- Pydantic (MIT)
+  https://github.com/pydantic/pydantic
+
+- Pandas (BSD 3-Clause)
+  https://github.com/pandas-dev/pandas
+
+- NumPy (BSD 3-Clause)
+  https://github.com/numpy/numpy
+
+- NetworkX (BSD 3-Clause)
+  https://github.com/networkx/networkx
+
+- SciPy (BSD 3-Clause)
+  https://github.com/scipy/scipy
+
+- Requests (Apache 2.0)
+  https://github.com/psf/requests
+
+These dependencies retain their original licenses and are used in accordance with
+their respective license terms.

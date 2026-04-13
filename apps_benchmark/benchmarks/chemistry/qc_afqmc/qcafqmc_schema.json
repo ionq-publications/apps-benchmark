@@ -1,0 +1,528 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QC-AFQMC Public BenchmarkCase",
+  "description": "Public QC-AFQMC benchmark instance. The shipped JSON follows the BenchmarkCase-style format used in apps-benchmark: benchmark_category, problem_type, instance_name, num_qubits, solution_algorithms, and data. It intentionally omits instance_id, so maintainers can add that field later if they want registry-style indexing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "benchmark_category",
+    "problem_type",
+    "instance_name",
+    "num_qubits",
+    "solution_algorithms",
+    "data"
+  ],
+  "properties": {
+    "benchmark_category": {
+      "type": "string",
+      "const": "chemistry"
+    },
+    "problem_type": {
+      "type": "string",
+      "const": "qc_afqmc"
+    },
+    "instance_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "num_qubits": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "solution_algorithms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}$"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "spec_version",
+        "system",
+        "setup",
+        "reference",
+        "analysis",
+        "scoring",
+        "artifacts"
+      ],
+      "properties": {
+        "spec_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "description": {
+          "type": "string"
+        },
+        "system": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "geometry",
+            "geometry_units",
+            "basis",
+            "charge",
+            "multiplicity",
+            "num_alpha",
+            "num_beta",
+            "num_electrons",
+            "num_spatial_orbitals",
+            "active_space"
+          ],
+          "properties": {
+            "geometry": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "number" },
+                  { "type": "number" },
+                  { "type": "number" }
+                ],
+                "additionalItems": false
+              }
+            },
+            "geometry_units": {
+              "type": "string",
+              "enum": ["angstrom"]
+            },
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "charge": {
+              "type": "integer"
+            },
+            "multiplicity": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "num_alpha": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "num_beta": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "num_electrons": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "num_spatial_orbitals": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "active_space": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "num_electrons",
+                    "num_orbitals",
+                    "selection_convention"
+                  ],
+                  "properties": {
+                    "num_electrons": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "num_orbitals": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "selection_convention": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "orbital_ordering": {
+              "type": "string"
+            }
+          }
+        },
+        "setup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "trial_state",
+            "shadow",
+            "afqmc"
+          ],
+          "properties": {
+            "trial_state": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "family",
+                "ansatz",
+                "reference_state",
+                "state_preparation",
+                "optimized_parameters"
+              ],
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ansatz": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reference_state": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "state_preparation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "optimized_parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 1
+                }
+              }
+            },
+            "shadow": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "family",
+                "ensemble",
+                "num_measurements",
+                "overlap_additive_error_epsilon",
+                "overlap_estimator"
+              ],
+              "properties": {
+                "family": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ensemble": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "num_measurements": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "overlap_additive_error_epsilon": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "overlap_estimator": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "method"
+                  ],
+                  "properties": {
+                    "method": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            },
+            "afqmc": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "num_walkers",
+                "timestep_au",
+                "num_blocks",
+                "num_steps_per_block",
+                "equilibration_blocks",
+                "reorthogonalization_frequency",
+                "population_control_frequency",
+                "population_control_method"
+              ],
+              "properties": {
+                "num_walkers": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "timestep_au": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "num_blocks": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "num_steps_per_block": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "equilibration_blocks": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "reorthogonalization_frequency": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "population_control_frequency": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "population_control_method": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "reference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scf_energy_ha",
+            "vqe_energy_ha",
+            "fci_energy_ha",
+            "nuclear_repulsion_included"
+          ],
+          "properties": {
+            "scf_energy_ha": {
+              "type": "number"
+            },
+            "vqe_energy_ha": {
+              "type": "number"
+            },
+            "fci_energy_ha": {
+              "type": "number"
+            },
+            "nuclear_repulsion_included": {
+              "type": "boolean"
+            }
+          }
+        },
+        "analysis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "trace_observable",
+            "equilibration_blocks_discarded",
+            "energy_estimator",
+            "uncertainty_estimator",
+            "reblocking_method",
+            "reported_result_fields"
+          ],
+          "properties": {
+            "trace_observable": {
+              "type": "string",
+              "minLength": 1
+            },
+            "equilibration_blocks_discarded": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "energy_estimator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uncertainty_estimator": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reblocking_method": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reported_result_fields": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "energy_ha",
+                "sem_ha"
+              ],
+              "properties": {
+                "energy_ha": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sem_ha": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "scoring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observable",
+            "metric",
+            "reference_field",
+            "result_field",
+            "score_units",
+            "hartree_to_score_units",
+            "target_threshold"
+          ],
+          "properties": {
+            "observable": {
+              "type": "string",
+              "minLength": 1
+            },
+            "metric": {
+              "type": "string",
+              "enum": ["absolute_error"]
+            },
+            "reference_field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "result_field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "score_units": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hartree_to_score_units": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "target_threshold": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "electronic_structure_data",
+            "shadow_data"
+          ],
+          "properties": {
+            "electronic_structure_data": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "format",
+                "sha256",
+                "datasets"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "format": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "datasets": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "uniqueItems": true
+                }
+              }
+            },
+            "shadow_data": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "format",
+                "sha256",
+                "datasets"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "format": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "datasets": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "shadow_vectors",
+                    "shadow_measurements"
+                  ],
+                  "properties": {
+                    "shadow_vectors": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "representation",
+                        "dtype"
+                      ],
+                      "properties": {
+                        "representation": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dtype": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "shadow_measurements": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "representation"
+                      ],
+                      "properties": {
+                        "representation": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

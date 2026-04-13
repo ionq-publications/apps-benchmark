@@ -1,0 +1,219 @@
+digraph apps_benchmark_architecture {
+    graph [
+        rankdir=LR,
+        splines=true,
+        pad="0.35",
+        nodesep="0.4",
+        ranksep="0.8",
+        fontname="Helvetica",
+        labelloc="t",
+        labeljust="l",
+        bgcolor="white",
+        label="apps-benchmark: function calls and dependencies"
+    ];
+
+    node [
+        shape=box,
+        style="rounded,filled",
+        fillcolor="#F8FAFC",
+        color="#334155",
+        fontname="Helvetica",
+        fontsize=11,
+        margin="0.14,0.08"
+    ];
+
+    edge [
+        color="#475569",
+        penwidth=1.4,
+        arrowsize=0.7,
+        fontname="Helvetica",
+        fontsize=10
+    ];
+
+    subgraph cluster_legend {
+        label="Legend";
+        color="#CBD5E1";
+        style="rounded";
+        fillcolor="#FFFFFF";
+
+        legend_call [label="Solid edge: runtime call / control flow", shape=note, fillcolor="#FFFFFF"];
+        legend_dep [label="Dashed edge: dependency, import, or inheritance", shape=note, fillcolor="#FFFFFF"];
+    }
+
+    subgraph cluster_cli {
+        label="CLI Layer";
+        color="#93C5FD";
+        style="rounded,filled";
+        fillcolor="#EFF6FF";
+
+        shell [label="User / shell", shape=oval, fillcolor="#DBEAFE"];
+        main [label="cli.main()"];
+        run_cmd [label="run()"];
+        list_cmd [label="list_resources()"];
+        add_cmd [label="add_resource()"];
+        local_dev_cmd [label="local_dev()"];
+        load_backend [label="_load_backend()"];
+        single_case [label="_run_single_benchmark()"];
+        category_run [label="_run_category_benchmarks()"];
+        load_runner [label="_load_runner()"];
+        find_case [label="_find_benchmark_case_by_uuid()"];
+    }
+
+    subgraph cluster_core {
+        label="Core Framework";
+        color="#86EFAC";
+        style="rounded,filled";
+        fillcolor="#F0FDF4";
+
+        init_regs [label="initialize_registries()"];
+        ensure_local [label="ensure_local_dev_dir()"];
+        get_local [label="get_local_dev_dir_from_config()"];
+        list_builtin_backends [label="list_builtin_backends()"];
+        list_diy_backends [label="list_diy_backends()"];
+        list_builtin_benchmarks [label="list_builtin_benchmarks()"];
+        discover_backends [label="_discover_builtin_backends()"];
+        discover_benchmarks [label="_discover_builtin_benchmarks()"];
+        runner_base [label="AbstractAlgoRunner.run_benchmark()"];
+        qc_runner [label="CircuitBenchmarkRunner\nshared circuit flow"];
+        record [label="BenchmarkSubmissionRecord /\nQCBenchmarkSubmissionRecord", fillcolor="#DCFCE7"];
+    }
+
+    subgraph cluster_data_utils {
+        label="Data and Utilities";
+        color="#C4B5FD";
+        style="rounded,filled";
+        fillcolor="#F5F3FF";
+
+        benchmark_case [label="BenchmarkCase.load_from_database()"];
+        benchmark_json [label="benchmark_cases/*.json\n(problem instance data)", shape=folder, fillcolor="#EDE9FE"];
+        cli_config [label="utils/cli_config.py\nload_cli_config / save_cli_config"];
+        file_ops [label="utils/file_ops.py\nload_registry / write_registry_atomic /\nsnake_to_camel"];
+        validation [label="utils/validation.py\nvalidate_* / duplicate checks"];
+        reg_backend [label="register_diy_backend()"];
+        reg_benchmark [label="register_diy_benchmark()"];
+    }
+
+    subgraph cluster_backends {
+        label="Built-in Backends";
+        color="#FCD34D";
+        style="rounded,filled";
+        fillcolor="#FFFBEB";
+
+        abstract_backend [label="AbstractBackend /\nAbstractAsyncBackend"];
+        backend_run [label="backend.run() /\nsubmit() / job_status() /\nretrieve_results()", fillcolor="#FEF3C7"];
+        mock_backend [label="MockBackend"];
+        aer_backend [label="QiskitAerSimBackend"];
+        ionq_backend [label="IonqCloudBackend"];
+    }
+
+    subgraph cluster_benchmarks {
+        label="Built-in Benchmark Runners";
+        color="#F9A8D4";
+        style="rounded,filled";
+        fillcolor="#FDF2F8";
+
+        cosine_qft_runner [label="CosineQftRunner"];
+        hidden_phase_qft_runner [label="HiddenPhaseQftRunner"];
+        vqe_runner [label="VqePuccdRunner"];
+        default_path [label="Default runner path:\nget_benchmark_circuits -> backend.run ->\nmerit_figures_from_measurements", fillcolor="#FCE7F3"];
+        vqe_path [label="VQE path:\nsetup Hamiltonian/ansatz ->\noptimization or inference ->\nmerit figures", fillcolor="#FCE7F3"];
+        vqe_eval [label="_objective_function() /\n_prepare_circuits() /\n_compute_energy_from_results()", fillcolor="#FCE7F3"];
+    }
+
+    subgraph cluster_external {
+        label="External Libraries";
+        color="#CBD5E1";
+        style="rounded,filled";
+        fillcolor="#F8FAFC";
+
+        click_lib [label="click", shape=ellipse, fillcolor="#FFFFFF"];
+        qiskit_lib [label="qiskit", shape=ellipse, fillcolor="#FFFFFF"];
+        aer_lib [label="qiskit-aer", shape=ellipse, fillcolor="#FFFFFF"];
+        ionq_lib [label="qiskit-ionq", shape=ellipse, fillcolor="#FFFFFF"];
+        requests_lib [label="requests", shape=ellipse, fillcolor="#FFFFFF"];
+        scipy_lib [label="scipy.optimize", shape=ellipse, fillcolor="#FFFFFF"];
+        numpy_lib [label="numpy / pandas", shape=ellipse, fillcolor="#FFFFFF"];
+    }
+
+    shell -> main [label="invokes"];
+    main -> init_regs [label="startup"];
+    main -> run_cmd [label="dispatch"];
+    main -> list_cmd [label="dispatch"];
+    main -> add_cmd [label="dispatch"];
+    main -> local_dev_cmd [label="dispatch"];
+
+    run_cmd -> cli_config [label="load/save config"];
+    run_cmd -> load_backend [label="resolve backend"];
+    run_cmd -> single_case [label="single UUID"];
+    run_cmd -> category_run [label="category"];
+
+    load_backend -> list_builtin_backends [label="built-ins"];
+    load_backend -> list_diy_backends [label="DIY"];
+    load_backend -> mock_backend [label="instantiate"];
+    load_backend -> aer_backend [label="instantiate"];
+    load_backend -> ionq_backend [label="instantiate"];
+
+    single_case -> find_case [label="lookup"];
+    single_case -> benchmark_case [label="load case"];
+    single_case -> load_runner [label="resolve runner"];
+    single_case -> runner_base [label="execute"];
+
+    category_run -> list_builtin_benchmarks [label="discover cases"];
+    category_run -> benchmark_case [label="load each case"];
+    category_run -> load_runner [label="resolve runner"];
+    category_run -> runner_base [label="execute"];
+
+    load_runner -> cosine_qft_runner [label="instantiate"];
+    load_runner -> hidden_phase_qft_runner [label="instantiate"];
+    load_runner -> vqe_runner [label="instantiate"];
+
+    runner_base -> qc_runner [label="shared template"];
+    runner_base -> record [label="packages result"];
+
+    cosine_qft_runner -> default_path [label="uses"];
+    hidden_phase_qft_runner -> default_path [label="uses"];
+    default_path -> backend_run [label="calls"];
+    default_path -> record [label="returns"];
+
+    vqe_runner -> vqe_path [label="uses"];
+    vqe_path -> vqe_eval [label="iterates"];
+    vqe_eval -> backend_run [label="shot-based mode"];
+    vqe_path -> record [label="returns"];
+
+    init_regs -> ensure_local [label="creates layout"];
+    ensure_local -> get_local [label="reads config"];
+    list_builtin_backends -> discover_backends [label="discovers"];
+    list_builtin_benchmarks -> discover_benchmarks [label="discovers"];
+    add_cmd -> reg_backend [label="--backend"];
+    add_cmd -> reg_benchmark [label="--benchmark"];
+    reg_backend -> validation [label="validate"];
+    reg_backend -> file_ops [label="write registry"];
+    reg_benchmark -> validation [label="validate"];
+    reg_benchmark -> file_ops [label="write registry"];
+
+    benchmark_case -> benchmark_json [label="loads"];
+
+    mock_backend -> abstract_backend [style=dashed, color="#94A3B8", label="inherits"];
+    aer_backend -> abstract_backend [style=dashed, color="#94A3B8", label="inherits"];
+    ionq_backend -> abstract_backend [style=dashed, color="#94A3B8", label="inherits"];
+    cosine_qft_runner -> qc_runner [style=dashed, color="#94A3B8", label="inherits"];
+    hidden_phase_qft_runner -> qc_runner [style=dashed, color="#94A3B8", label="inherits"];
+    vqe_runner -> qc_runner [style=dashed, color="#94A3B8", label="inherits"];
+
+    main -> click_lib [style=dashed, color="#94A3B8", label="CLI framework"];
+    aer_backend -> qiskit_lib [style=dashed, color="#94A3B8", label="circuits + transpile"];
+    aer_backend -> aer_lib [style=dashed, color="#94A3B8", label="simulator"];
+    ionq_backend -> qiskit_lib [style=dashed, color="#94A3B8", label="transpile"];
+    ionq_backend -> ionq_lib [style=dashed, color="#94A3B8", label="provider/jobs"];
+    ionq_backend -> requests_lib [style=dashed, color="#94A3B8", label="completion time API"];
+    cosine_qft_runner -> qiskit_lib [style=dashed, color="#94A3B8", label="QFT circuits"];
+    hidden_phase_qft_runner -> qiskit_lib [style=dashed, color="#94A3B8", label="QFT circuits"];
+    vqe_runner -> qiskit_lib [style=dashed, color="#94A3B8", label="circuits / estimators"];
+    vqe_runner -> scipy_lib [style=dashed, color="#94A3B8", label="optimizer"];
+    vqe_runner -> numpy_lib [style=dashed, color="#94A3B8", label="numerics"];
+    qc_runner -> qiskit_lib [style=dashed, color="#94A3B8", label="QuantumCircuit"];
+    discover_backends -> file_ops [style=dashed, color="#94A3B8", label="registry helpers"];
+    discover_benchmarks -> benchmark_json [style=dashed, color="#94A3B8", label="case metadata"];
+    reg_backend -> abstract_backend [style=dashed, color="#94A3B8", label="interface check"];
+    reg_benchmark -> qc_runner [style=dashed, color="#94A3B8", label="runner contract"];
+}

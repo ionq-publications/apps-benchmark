@@ -1,0 +1,1 @@
+{"benchmark_category": "qft", "problem_type": "qft", "instance_name": "36_qubit_challenge", "num_qubits": 36, "solution_algorithms": ["cosine_qft", "hidden_phase_qft"], "data": {"frequency_index": 34359738367, "phase_index": 7450356291}, "instance_id": "461db980"}

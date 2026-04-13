@@ -1,0 +1,51 @@
+{
+  "benchmark_category": "image_loading",
+  "problem_type": "image_loading",
+  "instance_name": "mnist_5",
+  "num_qubits": 10,
+  "solution_algorithms": [
+    "image_loading"
+  ],
+  "data": {
+    "construction_method": "mps",
+    "encoding": "dense_amplitude",
+    "score_aggregation": "min_mse_across_depths",
+    "score_direction": "lower_is_better",
+    "pass_threshold_mse": 0.1,
+    "recommended_minimum_shots_per_qc": 10000,
+    "image_source_dataset": "MNIST",
+    "image_source_label": "digit_5",
+    "image_dimensions": [
+      32,
+      32
+    ],
+    "image_asset": "../assets/mnist_5.png",
+    "depth_variants": [
+      {
+        "depth": 1,
+        "circuit": "../assets/mnist_5_D1.qpy"
+      },
+      {
+        "depth": 2,
+        "circuit": "../assets/mnist_5_D2.qpy"
+      },
+      {
+        "depth": 3,
+        "circuit": "../assets/mnist_5_D3.qpy"
+      },
+      {
+        "depth": 4,
+        "circuit": "../assets/mnist_5_D4.qpy"
+      },
+      {
+        "depth": 5,
+        "circuit": "../assets/mnist_5_D5.qpy"
+      },
+      {
+        "depth": 6,
+        "circuit": "../assets/mnist_5_D6.qpy"
+      }
+    ]
+  },
+  "instance_id": "8f0d4a61"
+}

@@ -1,0 +1,1 @@
+{"benchmark_category": "hidden_shift", "problem_type": "hidden_shift_mcx", "instance_name": "hsbp_08q_mcx", "num_qubits": 8, "solution_algorithms": ["hidden_shift"], "data": {"permutation": "mcx", "shifts": ["11111111", "11111110", "10011111", "00101011", "00101110", "01011111", "11011111", "11100101", "10011101", "01111111"]}, "instance_id": "92319a54"}

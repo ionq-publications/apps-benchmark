@@ -1,0 +1,59 @@
+{
+  "benchmark_category": "image_loading",
+  "problem_type": "image_loading",
+  "instance_name": "imagenet_sketch_shark",
+  "num_qubits": 12,
+  "solution_algorithms": [
+    "image_loading"
+  ],
+  "data": {
+    "construction_method": "mps",
+    "encoding": "dense_amplitude",
+    "score_aggregation": "min_mse_across_depths",
+    "score_direction": "lower_is_better",
+    "pass_threshold_mse": 0.1,
+    "recommended_minimum_shots_per_qc": 10000,
+    "image_source_dataset": "ImageNet-Sketch",
+    "image_source_label": "shark_outline",
+    "image_dimensions": [
+      64,
+      64
+    ],
+    "image_asset": "../assets/imagenet_sketch_shark.png",
+    "depth_variants": [
+      {
+        "depth": 3,
+        "circuit": "../assets/imagenet_sketch_shark_D3.qpy"
+      },
+      {
+        "depth": 4,
+        "circuit": "../assets/imagenet_sketch_shark_D4.qpy"
+      },
+      {
+        "depth": 5,
+        "circuit": "../assets/imagenet_sketch_shark_D5.qpy"
+      },
+      {
+        "depth": 6,
+        "circuit": "../assets/imagenet_sketch_shark_D6.qpy"
+      },
+      {
+        "depth": 7,
+        "circuit": "../assets/imagenet_sketch_shark_D7.qpy"
+      },
+      {
+        "depth": 9,
+        "circuit": "../assets/imagenet_sketch_shark_D9.qpy"
+      },
+      {
+        "depth": 11,
+        "circuit": "../assets/imagenet_sketch_shark_D11.qpy"
+      },
+      {
+        "depth": 13,
+        "circuit": "../assets/imagenet_sketch_shark_D13.qpy"
+      }
+    ]
+  },
+  "instance_id": "9a17b3ce"
+}

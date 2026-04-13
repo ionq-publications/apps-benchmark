@@ -1,0 +1,125 @@
+{
+  "benchmark_category": "chemistry",
+  "problem_type": "qc_afqmc",
+  "instance_name": "h6_linear_2p0",
+  "num_qubits": 12,
+  "solution_algorithms": [
+    "qc_afqmc"
+  ],
+  "data": {
+    "spec_version": "1.0",
+    "description": "H6 linear chain at 2.0 Angstrom spacing in STO-3G for the QC-AFQMC benchmark.",
+    "system": {
+      "geometry": [
+        ["H", 0.0, 0.0, 0.0],
+        ["H", 0.0, 0.0, 2.0],
+        ["H", 0.0, 0.0, 4.0],
+        ["H", 0.0, 0.0, 6.0],
+        ["H", 0.0, 0.0, 8.0],
+        ["H", 0.0, 0.0, 10.0]
+      ],
+      "geometry_units": "angstrom",
+      "basis": "sto-3g",
+      "charge": 0,
+      "multiplicity": 1,
+      "num_alpha": 3,
+      "num_beta": 3,
+      "num_electrons": 6,
+      "num_spatial_orbitals": 6,
+      "active_space": null
+    },
+    "setup": {
+      "trial_state": {
+        "family": "vqe",
+        "ansatz": "puccd",
+        "reference_state": "hf",
+        "state_preparation": "bell_hf",
+        "optimized_parameters": [
+          0.09858761398712108,
+          0.0193811607783973,
+          0.11638521952275956,
+          0.034097439555168786,
+          0.21920316991373953,
+          0.020454388504721845,
+          0.30556358788256693,
+          0.03642651376230527,
+          0.08993330517246573
+        ]
+      },
+      "shadow": {
+        "family": "matchgate",
+        "ensemble": "permutation_group",
+        "num_measurements": 28289,
+        "overlap_additive_error_epsilon": 0.05,
+        "overlap_estimator": {
+          "method": "mean"
+        }
+      },
+      "afqmc": {
+        "num_walkers": 256,
+        "timestep_au": 0.01,
+        "num_blocks": 80,
+        "num_steps_per_block": 20,
+        "equilibration_blocks": 10,
+        "reorthogonalization_frequency": 5,
+        "population_control_frequency": 5,
+        "population_control_method": "pair_branch"
+      }
+    },
+    "reference": {
+      "scf_energy_ha": -2.3684212842825962,
+      "vqe_energy_ha": -2.4621190325800866,
+      "fci_energy_ha": -2.8471921339556028,
+      "nuclear_repulsion_included": true
+    },
+    "analysis": {
+      "trace_observable": "ETotal",
+      "equilibration_blocks_discarded": 10,
+      "energy_estimator": "mean",
+      "uncertainty_estimator": "sem",
+      "reblocking_method": "ipie.analysis.autocorr.reblock_by_autocorr",
+      "reported_result_fields": {
+        "energy_ha": "result.energy_ha",
+        "sem_ha": "result.sem_ha"
+      }
+    },
+    "scoring": {
+      "observable": "total_energy",
+      "metric": "absolute_error",
+      "reference_field": "data.reference.fci_energy_ha",
+      "result_field": "result.energy_ha",
+      "score_units": "kcal/mol",
+      "hartree_to_score_units": 627.5094740631,
+      "target_threshold": 1.0
+    },
+    "artifacts": {
+      "electronic_structure_data": {
+        "path": "electronic_structure_data/h6_linear_2.0.dat",
+        "format": "hdf5",
+        "sha256": "f21e46d9d9eca813c0e73e2bf4cb8f0a0bc7113f13a9ef725c5d0576c28c8b9b",
+        "datasets": [
+          "xyz",
+          "one_body_integrals",
+          "two_body_integrals",
+          "core_energy",
+          "scf_energy",
+          "vqe_params"
+        ]
+      },
+      "shadow_data": {
+        "path": "shadows/h6_simulator_ideal.dat",
+        "format": "hdf5",
+        "sha256": "f72b49c8f283271bde719b23199de146b4d7602cb9c83d671bd913e5ee5a081c",
+        "datasets": {
+          "shadow_vectors": {
+            "representation": "signed_permutation_vectors",
+            "dtype": "int64"
+          },
+          "shadow_measurements": {
+            "representation": "json_bitstring_list"
+          }
+        }
+      }
+    }
+  }
+}

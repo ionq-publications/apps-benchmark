@@ -1,0 +1,1 @@
+{"benchmark_category": "optimization", "problem_type": "maxcut", "instance_name": "4reg_16_node_p47", "num_qubits": 16, "solution_algorithms": ["lr_qaoa"], "data": {"graph_file": "4reg_16_node_graph.gml", "opt": 26, "p": 47}, "instance_id": "46a846f1"}

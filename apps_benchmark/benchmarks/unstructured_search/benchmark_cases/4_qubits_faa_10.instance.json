@@ -1,0 +1,1 @@
+{"benchmark_category": "unstructured_search", "problem_type": "faa", "instance_name": "4_qubits_faa_10", "num_qubits": 4, "solution_algorithms": ["faa"], "data": {"num_qubits": 4, "phase_option": 2, "target": "0100"}, "instance_id": "5a60a000"}
