@@ -172,7 +172,7 @@ class TestConfigPrecedence:
         config_data = {
             "version": "1.0",
             "backend": "mock_backend",
-            "qbit_max": 15,  # Default is 10
+            "qbit_max": 15,
             "shots": 3000,  # Default is 1000
             "category": "chemistry",
             "case_uuid": None,
@@ -207,7 +207,7 @@ class TestConfigPrecedence:
         # Run with load-config and explicit shots (overrides default)
         result = cli_runner.invoke(main, ["run", "--load-config=chain", "--shots=5000"])
 
-        # qbit_max=15 from config (overrides default of 10)
+        # qbit_max=15 from config enables filtering
         # shots=5000 from CLI (overrides config's 1000)
         # backend=mock_backend from config
         # category=chemistry from config
@@ -292,6 +292,6 @@ class TestConfigPrecedence:
         # Run without load-config
         result = cli_runner.invoke(main, ["run", "--backend=mock_backend", "--category=chemistry"])
 
-        # Should use default qbit_max=10 and shots=1000
+        # Should use the default unfiltered category selection and shots=1000
         assert result.exit_code == 0
         assert "Running benchmarks in category 'chemistry'" in result.output

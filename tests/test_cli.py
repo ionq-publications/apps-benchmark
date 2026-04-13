@@ -10,6 +10,7 @@ For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 
 import json
+from pathlib import Path
 
 import pytest
 from apps_benchmark.cli import _get_shots_for_case, _resolve_shots, main
@@ -96,12 +97,21 @@ class TestRunCommand:
         assert result.exit_code == 1
         assert "Either --case-uuid or --category is required" in result.output
 
-    def test_run_default_qbit_max(self, cli_runner, mock_home):
-        """Test that run command has default qbit-max of 10."""
-        # Needs category or UUID to proceed
-        result = cli_runner.invoke(main, ["run", "--backend=mock_backend", "--category=chemistry"])
-        # Will fail at "category not yet implemented" but validates defaults
-        assert "--qbit-max" not in result.output or "Max qubits: 10" in result.output
+    def test_run_without_qbit_max_runs_unfiltered_category(self, cli_runner, mock_home):
+        """Test that category runs include all discovered cases by default."""
+        qft_cases_dir = (
+            Path(__file__).resolve().parents[1]
+            / "apps_benchmark"
+            / "benchmarks"
+            / "qft"
+            / "benchmark_cases"
+        )
+        expected_runs = sum(1 for _ in qft_cases_dir.glob("*.json"))
+        result = cli_runner.invoke(main, ["run", "--backend=mock_backend", "--category=qft"])
+        assert result.exit_code == 0
+        assert "Max qubits: all" in result.output
+        assert f"Found {expected_runs} benchmark(s) to run" in result.output
+        assert "58_qubit_challenge" in result.output
 
     def test_run_default_shots(self, cli_runner, mock_home):
         """Test that run command advertises benchmark-specific shot defaults."""

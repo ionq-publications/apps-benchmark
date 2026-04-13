@@ -87,10 +87,10 @@ apps-benchmark list --backends
 # Display the bootstrap config and local development paths
 apps-benchmark local-dev
 
-# Run all benchmarks in a category (default: --qbit-max=10 filters out larger cases)
+# Run all benchmarks in a category
 apps-benchmark run --backend=qiskit_aer_sim_backend --category=chemistry
 
-# Override the default category filter
+# Restrict a category run to smaller cases
 apps-benchmark run --backend=qiskit_aer_sim_backend --category=chemistry --qbit-max=20
 
 # Run a specific benchmark by UUID. Note case-uuid takes precedence over qbit-max

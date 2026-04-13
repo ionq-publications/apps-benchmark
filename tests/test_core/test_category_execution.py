@@ -16,7 +16,6 @@ from apps_benchmark.cli import main
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 from click.testing import CliRunner
 
-
 CHEMISTRY_CASES_DIR = (
     Path(__file__).resolve().parents[2]
     / "apps_benchmark"
@@ -62,6 +61,25 @@ class TestCategoryExecution:
         assert "RESULTS SUMMARY" in result.output
         assert f"Total runs:      {expected_runs}" in result.output
         assert f"Completed:       {expected_runs}" in result.output
+
+    def test_category_execution_without_qbit_filter_runs_all_cases(self):
+        """Test that category execution is unfiltered unless qbit-max is provided."""
+        expected_runs = chemistry_case_count()
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            [
+                "run",
+                "--backend=mock_backend",
+                "--category=chemistry",
+                "--shots=100",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Max qubits: all" in result.output
+        assert f"Found {expected_runs} benchmark(s) to run" in result.output
+        assert "filtered by --qbit-max" not in result.output
 
     def test_category_execution_with_qbit_filter(self):
         """Test that qbit_max filter works correctly."""
@@ -120,6 +138,7 @@ class TestCategoryExecution:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
             ],
         )
 
@@ -138,6 +157,7 @@ class TestCategoryExecution:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
             ],
         )
         assert result.exit_code == 0
@@ -186,6 +206,7 @@ class TestCategoryExecutionWithDifferentBackends:
                 "run",
                 "--backend=qiskit_aer_sim_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
                 "--shots=10",  # Use fewer shots for speed
             ],
         )
@@ -209,6 +230,7 @@ class TestResultAggregation:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
                 "--shots=100",
             ],
         )
@@ -233,6 +255,7 @@ class TestResultAggregation:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
             ],
         )
 

@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import cast
 
 import click
-from qiskit_ionq import IonQProvider
 
 from apps_benchmark.core.backend import AbstractBackend
 from apps_benchmark.core.benchmark import AbstractAlgoRunner, BenchmarkSubmissionRecord
@@ -75,7 +74,7 @@ def _get_shots_for_case(bm_case: BenchmarkCase) -> int | None:
             raise ValueError(f"Error: shots in BenchmarkCase '{bm_case.instance_name}' must be a positive integer. "
                              f"Got {config_shots}")
         return config_shots
-    return None 
+    return None
 
 
 # hacky but unblocks timeline
@@ -363,7 +362,7 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
             click.echo(f"  Available algorithms: {', '.join(problem.solution_algorithms)}")
             click.echo(f"  Using algorithm: {runner_name}")
             if not algorithm:
-                click.echo(f"  ℹ  Use --algorithm to select a different solution algorithm")
+                click.echo("  ℹ  Use --algorithm to select a different solution algorithm")
         else:
             click.echo(f"  Algorithm: {problem.solution_algorithms[0]}")
     except Exception as exc:
@@ -462,7 +461,7 @@ def _display_category_results(results: list, category: str, backend_name: str, s
     click.echo("-" * 60)
 
     #list them alphabetically by problem name( which should lead by count, by convention)
-    for result in sorted(results, key=lambda r: r.instance_name):                                                 
+    for result in sorted(results, key=lambda r: r.instance_name):
         problem_name = result.instance_name[:24]  # Truncate if too long
         algo_name = result.solution_algorithm[:14]
         score_str = f"{result.score:.6f}"
@@ -474,7 +473,12 @@ def _display_category_results(results: list, category: str, backend_name: str, s
 
 
 def _run_category_benchmarks(
-    backend: AbstractBackend, category: str, qbit_max: int, cli_shots: int | None, config_shots: int | None, algorithm: str | None = None
+    backend: AbstractBackend,
+    category: str,
+    qbit_max: int | None,
+    cli_shots: int | None,
+    config_shots: int | None,
+    algorithm: str | None = None,
 ) -> None:
     """
     Run all benchmarks in a category.
@@ -482,7 +486,7 @@ def _run_category_benchmarks(
     Args:
         backend: Backend instance
         category: Benchmark category
-        qbit_max: Maximum qubits
+        qbit_max: Optional maximum qubits filter
         cli_shots: CLI-specified shots
         config_shots: Config-specified shots
         algorithm: Solution algorithm to use. If specified, only runs benchmarks that
@@ -492,7 +496,7 @@ def _run_category_benchmarks(
     """
     click.echo(f"\nRunning benchmarks in category '{category}'...")
     click.echo(f"  Backend: {backend.name()}")
-    click.echo(f"  Max qubits: {qbit_max}")
+    click.echo(f"  Max qubits: {qbit_max if qbit_max is not None else 'all'}")
 
     # Get all benchmarks in category (both built-in and DIY)
     builtin = list_builtin_benchmarks()
@@ -516,14 +520,14 @@ def _run_category_benchmarks(
 
     # Add DIY benchmark cases if category exists in DIY
     if category in diy:
-        for runner_name, runner_info in diy[category].items():
+        for _runner_name, runner_info in diy[category].items():
             benchmark_cases.extend(runner_info.get("benchmark_cases", []))
 
     if not benchmark_cases:
         click.echo(f"\nNo benchmark cases found in category '{category}'", err=True)
         raise SystemExit(1)
 
-    # Filter by qbit_max
+    # Filter by qbit_max when explicitly requested
     filtered_cases = []
     for case_info in benchmark_cases:
         case_path = Path(case_info["file"])
@@ -531,7 +535,7 @@ def _run_category_benchmarks(
             with open(case_path) as f:
                 data = json.load(f)
             num_qubits = data.get("num_qubits", 0)
-            if num_qubits <= qbit_max:
+            if qbit_max is None or num_qubits <= qbit_max:
                 filtered_cases.append(case_info)
         except Exception as e:
             click.echo(f"Warning: Failed to load case {case_path.name}")
@@ -540,11 +544,17 @@ def _run_category_benchmarks(
             continue
 
     if not filtered_cases:
-        click.echo(f"\nNo benchmark cases found with num_qubits <= {qbit_max}", err=True)
+        if qbit_max is None:
+            click.echo(f"\nNo benchmark cases found in category '{category}'", err=True)
+        else:
+            click.echo(f"\nNo benchmark cases found with num_qubits <= {qbit_max}", err=True)
         raise SystemExit(1)
-    
+
     filtered_out_count = len(benchmark_cases) - len(filtered_cases)
-    click.echo(f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})")
+    if qbit_max is not None:
+        click.echo(
+            f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})"
+        )
     click.echo(f"\nFound {len(filtered_cases)} benchmark(s) to run:")
     for case_info in filtered_cases:
         click.echo(f"  - {case_info['name']} (UUID: {case_info['uuid']})")
@@ -628,8 +638,8 @@ def main() -> None:
     type=click.IntRange(min=1),
     default=None,
     help=(
-        "Maximum number of qubits to use (default: 10). Category runs filter out cases above this "
-        "limit unless overridden. Note case-uuid takes precedence over qbit-max"
+        "Maximum number of qubits to use. Category runs include all discovered cases unless this "
+        "filter is provided. Note case-uuid takes precedence over qbit-max"
     ),
 )
 @click.option(
@@ -651,7 +661,7 @@ def main() -> None:
 )
 @click.option(
     "--shots",
-    "cli_shots", #use a different name to avoid confusion with other ways shots is set 
+    "cli_shots",  # use a different name to avoid confusion with other ways shots is set
     type=click.IntRange(min=1),
     default=None,
     help="User-specified number of shots per circuit (default: config-specific, benchmark-specific, else 1000)",
@@ -699,11 +709,11 @@ def run(
     apps-benchmark run --self-test --backend=qiskit_aer_sim_backend
 
     \b
-    # Run all benchmarks in a category (default: --qbit-max=10 filters out larger cases)
-    apps-benchmark run --backend=ionq.forte --qbit-max=4 --category=chemistry
+    # Run all benchmarks in a category
+    apps-benchmark run --backend=ionq.forte --category=chemistry
 
     \b
-    # Override the default category filter
+    # Restrict a category run to smaller cases
     apps-benchmark run --backend=ionq.forte --category=chemistry --qbit-max=20
 
     \b
@@ -754,12 +764,8 @@ def run(
             click.echo(f"Error: {exc}", err=True)
             raise SystemExit(1) from exc
 
-    # Track whether --qbit-max was explicitly provided before applying defaults
+    # Track whether qbit_max was explicitly provided by CLI or loaded config
     qbit_max_explicitly_set = qbit_max is not None
-
-    # Apply defaults for parameters still not set
-    if qbit_max is None:
-        qbit_max = 10
 
     # Handle save-config if requested
     if save_config:
