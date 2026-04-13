@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QLBM Public BenchmarkCase",
+  "description": "Public QLBM benchmark instance stored in the BenchmarkCase-style format used by apps-benchmark.",
+  "type": "object",
+  "required": [
+    "benchmark_category",
+    "problem_type",
+    "instance_name",
+    "num_qubits",
+    "solution_algorithms",
+    "data"
+  ],
+  "properties": {
+    "benchmark_category": {
+      "const": "computational_fluid_dynamics"
+    },
+    "problem_type": {
+      "const": "quantum_lattice_boltzmann_method"
+    },
+    "instance_name": {
+      "type": "string"
+    },
+    "num_qubits": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "solution_algorithms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "instance_id": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "grid size",
+        "spatial dimension",
+        "directions",
+        "cs",
+        "w",
+        "e",
+        "u",
+        "initial state"
+      ],
+      "properties": {
+        "grid size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "spatial dimension": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "directions": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cs": {
+          "type": "number"
+        },
+        "w": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "e": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "u": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "initial state": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}
