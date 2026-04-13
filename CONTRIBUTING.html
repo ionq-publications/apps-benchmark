@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CONTRIBUTING - apps-benchmark</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CONTRIBUTING - apps-benchmark</h1>
+</header>
+<h1 id="contributing-to-apps-benchmark">Contributing to
+apps-benchmark</h1>
+<p>Thank you for your interest in contributing to the IonQ Quantum
+Application Benchmarking Framework! This guide covers development
+workflows, tools, and best practices for contributing to
+apps-benchmark.</p>
+<h2 id="code-of-conduct">Code of Conduct</h2>
+<p>We are committed to providing a welcoming and inclusive environment.
+All contributors are expected to:</p>
+<ul>
+<li>Be respectful and considerate in communication</li>
+<li>Accept constructive criticism gracefully</li>
+<li>Focus on what's best for the project</li>
+<li>Show empathy towards other contributors</li>
+</ul>
+<p>Unacceptable behavior includes harassment, trolling, or personal
+attacks. Report issues to App Benchmark Support at <a
+href="mailto:apps-benchmark-support@ionq.co">apps-benchmark-support@ionq.co</a>.</p>
+<h2 id="licensing">Licensing</h2>
+<p>By contributing to this project, you agree that your contributions
+will be licensed under the Creative Commons
+Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND
+4.0) License. This means:</p>
+<ul>
+<li><strong>Attribution</strong>: All contributions must properly
+attribute IonQ, Inc.</li>
+<li><strong>NonCommercial</strong>: Contributions cannot be used for
+commercial purposes</li>
+<li><strong>NoDerivatives</strong>: Modified versions require permission
+from IonQ</li>
+</ul>
+<p>Your contributions must be compatible with this license. If you're
+contributing code that depends on third-party libraries, ensure those
+libraries have compatible licenses (see <a href="../NOTICE">NOTICE</a>
+for acceptable licenses).</p>
+<p>For questions about licensing or to request special permissions,
+contact App Benchmark Support at <a
+href="mailto:apps-benchmark-support@ionq.co">apps-benchmark-support@ionq.co</a>.</p>
+<p>For complete license details, see:</p>
+<ul>
+<li><a href="../LICENSE">LICENSE</a> - Full license text</li>
+<li><a href="LICENSE.md">docs/LICENSE.md</a> - License summary and
+terms</li>
+</ul>
+<h2 id="development-setup">Development Setup</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>Python 3.12 or higher</li>
+<li>Git</li>
+<li>Micromamba (recommended)</li>
+</ul>
+<h3 id="initial-setup">Initial Setup</h3>
+<ol type="1">
+<li>Clone the repository:</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/ionq/apps-benchmark.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> apps-benchmark</span></code></pre></div>
+<p>Note that based on release version and scope, the URL may change.</p>
+<ol start="2" type="1">
+<li>Create a virtual environment:</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> venv .venv</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate  <span class="co"># On Windows: .venv\Scripts\activate</span></span></code></pre></div>
+<ol start="3" type="1">
+<li>Install development dependencies:</li>
+</ol>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> <span class="st">&quot;.[dev]&quot;</span></span></code></pre></div>
+<ol start="4" type="1">
+<li>Install pre-commit hooks:</li>
+</ol>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pre-commit</span> install</span></code></pre></div>
+<h3 id="about-pre-commit-hooks">About Pre-commit Hooks</h3>
+<p>Pre-commit hooks automatically run code quality checks (ruff
+formatting, linting, and mypy type checking) before each git commit. If
+any check fails, the commit is blocked and you'll need to fix the issues
+before committing. This ensures all committed code meets project
+standards without manual intervention.</p>
+<h2 id="code-standards">Code Standards</h2>
+<h3 id="code-style">Code Style</h3>
+<p>We use <code>ruff</code> for linting and formatting:</p>
+<ul>
+<li>Line length: 100 characters</li>
+<li>Target: Python 3.12</li>
+<li>Quote style: double quotes</li>
+<li>Indentation: spaces</li>
+</ul>
+<p>Format your code:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ruff</span> format .</span></code></pre></div>
+<p>Check for issues:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">ruff</span> check .</span></code></pre></div>
+<h3 id="type-checking">Type Checking</h3>
+<p>We use <code>mypy</code> for static type checking. All code must be
+fully typed:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mypy</span> apps_benchmark</span></code></pre></div>
+<h2 id="testing">Testing</h2>
+<h3 id="running-tests">Running Tests</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span></code></pre></div>
+<p>Run tests in parallel:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-n</span> auto</span></code></pre></div>
+<p>Run with coverage:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">--cov</span><span class="op">=</span>apps_benchmark <span class="at">--cov-report</span><span class="op">=</span>term-missing</span></code></pre></div>
+<h3 id="writing-tests">Writing Tests</h3>
+<ul>
+<li>Place tests in the <code>tests/</code> directory</li>
+<li>Use the naming convention <code>test_*.py</code></li>
+<li>Test classes should be named <code>Test*</code></li>
+<li>Test functions should be named <code>test_*</code></li>
+</ul>
+<h2 id="git-workflow">Git Workflow</h2>
+<ol type="1">
+<li>Create a feature branch:</li>
+</ol>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> feature/your-feature-name</span></code></pre></div>
+<ol start="2" type="1">
+<li>Make your changes and commit:</li>
+</ol>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add .</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;Description of changes&quot;</span></span></code></pre></div>
+<ol start="3" type="1">
+<li>Push to your branch:</li>
+</ol>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> push origin feature/your-feature-name</span></code></pre></div>
+<ol start="4" type="1">
+<li>Open a Pull Request against <code>main</code></li>
+</ol>
+<h3 id="commit-messages">Commit Messages</h3>
+<ul>
+<li>Use clear, descriptive commit messages</li>
+<li>Start with a verb in present tense (e.g., "Add", "Fix",
+"Update")</li>
+<li>Keep the first line under 72 characters</li>
+</ul>
+<h2 id="pre-commit-hooks">Pre-commit Hooks</h2>
+<p>Pre-commit hooks automatically run on every commit to ensure code
+quality:</p>
+<ul>
+<li><code>ruff</code> formatting and linting</li>
+<li><code>mypy</code> type checking</li>
+<li>Trailing whitespace removal</li>
+<li>YAML/JSON validation</li>
+</ul>
+<p>If hooks fail, fix the issues and re-commit.</p>
+<h2 id="pull-request-process">Pull Request Process</h2>
+<ol type="1">
+<li>Ensure all tests pass</li>
+<li>Update documentation if needed</li>
+<li>Add your changes to CHANGELOG.md (if applicable)</li>
+<li>Request review from maintainers</li>
+<li>Address review feedback</li>
+<li>Once approved, a maintainer will merge your PR</li>
+</ol>
+<h2 id="documentation">Documentation</h2>
+<h3 id="building-html-docs">Building HTML Docs</h3>
+<p>Install pandoc, then generate HTML from any Markdown file:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># macOS</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install pandoc</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ubuntu/Debian</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install pandoc</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate HTML</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> docs/CONTRIBUTING.md <span class="at">--from</span><span class="op">=</span>gfm <span class="at">--to</span><span class="op">=</span>html5 <span class="at">--standalone</span> <span class="at">-o</span> CONTRIBUTING.html</span></code></pre></div>
+<p>HTML is also auto-generated via GitHub Actions on every push to
+<code>main</code>. See <a href="README.md">README.md</a> for
+details.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="import-errors">Import Errors</h3>
+<p>Ensure package is installed in editable mode:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .</span></code></pre></div>
+<h3 id="test-failures">Test Failures</h3>
+<p>Run specific test with verbose output:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">-vv</span> tests/test_file.py::test_name</span></code></pre></div>
+<h3 id="type-checking-issues">Type Checking Issues</h3>
+<p>Check specific file with verbose output:</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mypy</span> <span class="at">--show-error-codes</span> apps_benchmark/file.py</span></code></pre></div>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><a href="https://docs.pytest.org/">pytest documentation</a></li>
+<li><a href="https://mypy.readthedocs.io/">mypy documentation</a></li>
+<li><a href="https://docs.astral.sh/ruff/">ruff documentation</a></li>
+<li><a href="https://pre-commit.com/">pre-commit hooks</a></li>
+</ul>
+<h2 id="questions-or-issues">Questions or Issues?</h2>
+<p>If you have questions or encounter issues, please:</p>
+<ul>
+<li>Check existing issues on GitHub</li>
+<li>Open a new issue with detailed information</li>
+<li>Contact App Benchmark Support at <a
+href="mailto:apps-benchmark-support@ionq.co">apps-benchmark-support@ionq.co</a></li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>API_REFERENCE - apps-benchmark</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">API_REFERENCE - apps-benchmark</h1>
+</header>
+<h1 id="api-reference">API Reference</h1>
+<p>This document provides an overview of the apps-benchmark API for
+developers who want to programmatically use the framework.</p>
+<h2 id="module-structure">Module Structure</h2>
+<pre><code>apps_benchmark/
+├── core/           # Core benchmarking interfaces and abstractions
+├── backends/       # Quantum backend implementations
+├── benchmarks/     # Built-in benchmark algorithms
+├── primitives/     # Quantum primitives and operations
+├── utils/          # Utility functions and helpers
+├── cli.py          # Command-line interface
+└── errors.py       # Custom exception classes</code></pre>
+<h2 id="core-modules">Core Modules</h2>
+<h3 id="apps_benchmarkcore"><code>apps_benchmark.core</code></h3>
+<p>The core module contains the fundamental abstractions for the
+benchmarking framework:</p>
+<ul>
+<li><strong>Interfaces</strong>: Standard interfaces for backends,
+benchmarks, and circuits</li>
+<li><strong>Engine</strong>: Main benchmarking execution engine</li>
+<li><strong>Results</strong>: Result handling and storage</li>
+<li><strong>Validation</strong>: Schema validation using Pydantic</li>
+</ul>
+<h3
+id="apps_benchmarkbackends"><code>apps_benchmark.backends</code></h3>
+<p>Backend implementations for different quantum computing
+platforms:</p>
+<ul>
+<li><strong>IonQ Cloud Backend</strong>: Direct integration with IonQ
+quantum hardware</li>
+<li><strong>Qiskit Aer Backend</strong>: Local simulation using Qiskit
+Aer</li>
+<li><strong>Qiskit IonQ Backend</strong>: IonQ access via Qiskit
+provider</li>
+</ul>
+<h4 id="usage-example">Usage Example</h4>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> qiskit <span class="im">import</span> QuantumCircuit</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> qiskit_ionq <span class="im">import</span> IonQProvider</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.backends.ionq_cloud_backend <span class="im">import</span> IonqCloudBackend</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create provider with your API key</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>os.environ[<span class="st">&quot;IONQ_API_KEY&quot;</span>] <span class="op">=</span> <span class="st">&quot;your-api-key&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>provider <span class="op">=</span> IonQProvider(token<span class="op">=</span><span class="st">&quot;your-api-key&quot;</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Get IonQ backend (simulator or QPU)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>ionq_target <span class="op">=</span> provider.get_backend(<span class="st">&quot;ionq_simulator&quot;</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Create backend wrapper</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>backend <span class="op">=</span> IonqCloudBackend(ionq_target, optimization_level<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a simple circuit</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>circuit <span class="op">=</span> QuantumCircuit(<span class="dv">2</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>circuit.h(<span class="dv">0</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>circuit.cx(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>circuit.measure_all()</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Submit a circuit</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>job_id, job_data <span class="op">=</span> backend.submit([circuit], shots<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div>
+<h3
+id="apps_benchmarkbenchmarks"><code>apps_benchmark.benchmarks</code></h3>
+<p>Built-in benchmark algorithm implementations:</p>
+<ul>
+<li><strong>Image Loading</strong>: Image-loading benchmark with
+best-over-depth MSE scoring over shipped precompiled circuits</li>
+<li><strong>QAOA</strong>: Quantum Approximate Optimization
+Algorithm</li>
+<li><strong>LR-QAOA</strong>: Long-Range QAOA variant</li>
+<li><strong>VQE</strong>: Variational Quantum Eigensolver</li>
+<li><strong>FAA</strong>: Fixed Point Amplitude Amplification - A
+quantum search algorithm using Quantum Singular Value Transforms (QSVT)
+for unstructured search problems</li>
+</ul>
+<h4 id="usage-example-1">Usage Example</h4>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.benchmarks.qaoa <span class="im">import</span> QAOABenchmark</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Create benchmark instance</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>benchmark <span class="op">=</span> QAOABenchmark(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    num_qubits<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    num_layers<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    problem_type<span class="op">=</span><span class="st">&quot;maxcut&quot;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Run benchmark</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> benchmark.run(backend<span class="op">=</span>backend, shots<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div>
+<h3
+id="apps_benchmarkprimitives"><code>apps_benchmark.primitives</code></h3>
+<p>Low-level quantum primitives and operations:</p>
+<ul>
+<li><strong>Circuit builders</strong>: Helper functions for circuit
+construction</li>
+<li><strong>Gates</strong>: Common quantum gate definitions</li>
+<li><strong>Measurements</strong>: Measurement operations and
+utilities</li>
+</ul>
+<h3 id="apps_benchmarkutils"><code>apps_benchmark.utils</code></h3>
+<p>Utility functions for common tasks:</p>
+<ul>
+<li><strong>Data processing</strong>: Result parsing and formatting</li>
+<li><strong>Visualization</strong>: Plotting and visualization
+helpers</li>
+<li><strong>Serialization</strong>: JSON/QASM import/export</li>
+<li><strong>Validation</strong>: Input validation and error
+checking</li>
+</ul>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="apps_benchmarkerrors"><code>apps_benchmark.errors</code></h3>
+<p>Custom exception classes for error handling:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.errors <span class="im">import</span> (</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    BenchmarkError,      <span class="co"># Base benchmark exception</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    BackendError,        <span class="co"># Backend-related errors</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ValidationError,     <span class="co"># Input validation errors</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    CircuitError,        <span class="co"># Circuit construction errors</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<h4 id="usage-example-2">Usage Example</h4>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> benchmark.run(backend<span class="op">=</span>backend)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> ValidationError <span class="im">as</span> e:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Invalid input: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> BackendError <span class="im">as</span> e:</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f&quot;Backend error: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">&quot;</span>)</span></code></pre></div>
+<h2 id="cli-interface">CLI Interface</h2>
+<h3 id="apps_benchmarkcli"><code>apps_benchmark.cli</code></h3>
+<p>The CLI module provides the command-line interface built with
+Click:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.cli <span class="im">import</span> main</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Programmatically invoke CLI</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    main()</span></code></pre></div>
+<h3 id="available-commands">Available Commands</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run a benchmark</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">apps-benchmark</span> run <span class="op">&lt;</span>benchmark_name<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">options</span><span class="pp">]</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># List available benchmarks</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="ex">apps-benchmark</span> list</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show benchmark details</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="ex">apps-benchmark</span> info <span class="op">&lt;</span>benchmark_name<span class="op">&gt;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Validate configuration</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="ex">apps-benchmark</span> validate <span class="op">&lt;</span>config_file<span class="op">&gt;</span></span></code></pre></div>
+<h2 id="configuration">Configuration</h2>
+<h3 id="pydantic-models">Pydantic Models</h3>
+<p>The framework uses Pydantic for configuration and validation:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pydantic <span class="im">import</span> BaseModel</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.core <span class="im">import</span> BenchmarkConfig</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MyBenchmarkConfig(BenchmarkConfig):</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    num_qubits: <span class="bu">int</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    num_layers: <span class="bu">int</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    shots: <span class="bu">int</span> <span class="op">=</span> <span class="dv">1000</span></span></code></pre></div>
+<h2 id="type-hints">Type Hints</h2>
+<p>The codebase uses type annotations throughout. All public APIs have
+type hints:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> Dict, List, Optional</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.core <span class="im">import</span> Circuit, BackendResult</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> process_results(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    results: List[BackendResult],</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    metadata: Optional[Dict[<span class="bu">str</span>, <span class="bu">str</span>]] <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Dict[<span class="bu">str</span>, <span class="bu">float</span>]:</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Implementation</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">pass</span></span></code></pre></div>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-type-hints">1. Use Type Hints</h3>
+<p>Always use type hints when working with the API for better IDE
+support and type checking.</p>
+<h3 id="2-handle-errors-gracefully">2. Handle Errors Gracefully</h3>
+<p>Catch specific exceptions rather than bare <code>except</code>
+clauses:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> benchmark.run(backend)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> BackendError <span class="im">as</span> e:</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    logger.error(<span class="ss">f&quot;Backend failed: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Handle error appropriately</span></span></code></pre></div>
+<h3 id="3-validate-inputs">3. Validate Inputs</h3>
+<p>Use Pydantic models for input validation:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.core <span class="im">import</span> BenchmarkConfig</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>config <span class="op">=</span> BenchmarkConfig(<span class="op">**</span>user_input)  <span class="co"># Validates automatically</span></span></code></pre></div>
+<h3 id="4-clean-up-resources">4. Clean Up Resources</h3>
+<p>Always close connections and clean up resources:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> qiskit <span class="im">import</span> QuantumCircuit</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> qiskit_ionq <span class="im">import</span> IonQProvider</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> apps_benchmark.backends.ionq_cloud_backend <span class="im">import</span> IonqCloudBackend</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up backend</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>provider <span class="op">=</span> IonQProvider(token<span class="op">=</span><span class="st">&quot;your-api-key&quot;</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ionq_target <span class="op">=</span> provider.get_backend(<span class="st">&quot;ionq_simulator&quot;</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>backend <span class="op">=</span> IonqCloudBackend(ionq_target)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Create and run circuit</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>circuit <span class="op">=</span> QuantumCircuit(<span class="dv">2</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>circuit.h(<span class="dv">0</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>circuit.cx(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>circuit.measure_all()</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>results, job_id, job_data <span class="op">=</span> backend.run([circuit], shots<span class="op">=</span><span class="dv">1000</span>)</span></code></pre></div>
+<h2 id="examples">Examples</h2>
+<p>See the <a href="DIY_BENCHMARK.md">DIY_BENCHMARK.md</a> and <a
+href="DIY_BACKEND.md">DIY_BACKEND.md</a> guides for comprehensive usage
+examples and tutorials.</p>
+<h2 id="further-documentation">Further Documentation</h2>
+<ul>
+<li><a href="DIY_GUIDE.md">DIY Guide</a> - Quick start for creating
+custom components</li>
+<li><a href="DIY_BENCHMARK.md">DIY Benchmark Guide</a> - Create custom
+benchmarks</li>
+<li><a href="DIY_BACKEND.md">DIY Backend Guide</a> - Create custom
+backends</li>
+<li><a href="CONTRIBUTING.md">Contributing Guidelines</a> - How to
+contribute</li>
+<li><a href="TESTING.md">Testing Guide</a> - Testing best practices</li>
+<li><a href="../README.md">Main README</a> - Project overview</li>
+</ul>
+<h2 id="api-stability">API Stability</h2>
+<p>This is version 1.0.0. The public API is considered stable, but:</p>
+<ul>
+<li>Internal APIs (prefixed with <code>_</code>) may change without
+notice</li>
+<li>Experimental features are marked as such in docstrings</li>
+<li>Deprecated features will be marked for at least one minor version
+before removal</li>
+</ul>
+<h2 id="getting-help">Getting Help</h2>
+<p>For API questions or issues:</p>
+<ul>
+<li>Check the inline docstrings (<code>help(function_name)</code>)</li>
+<li>Review the source code in the repository</li>
+<li>Open an issue on GitHub</li>
+<li>Contact App Benchmark Support at <a
+href="mailto:apps-benchmark-support@ionq.co">apps-benchmark-support@ionq.co</a></li>
+</ul>
+</body>
+</html>
