@@ -162,6 +162,14 @@ class TestDiscoverBuiltinBenchmarks:
         assert qcafqmc_case["open_solution_algorithms"] == ["qc_afqmc"]
         assert qcafqmc_case["all_solutions_open"] is True
 
+    def test_discover_builtin_benchmarks_includes_qlbm_open_metadata(self):
+        """QLBM discovery should surface open benchmark metadata."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        cfd_case = benchmarks["computational_fluid_dynamics"]["benchmark_cases"][0]
+        assert cfd_case["open_solution_algorithms"] == ["qlbm"]
+        assert cfd_case["all_solutions_open"] is True
+
     def test_discover_builtin_benchmarks_finds_nested_open_cases(self):
         """Nested benchmark_cases directories should be discovered for built-ins."""
         benchmarks = _discover_builtin_benchmarks()

@@ -4,7 +4,10 @@
   "instance_name": "16by16_2d_advection_diffusion",
   "num_qubits": 15,
   "solution_algorithms": [
-    "qLBM"
+    "qlbm"
+  ],
+  "open_solution_algorithms": [
+    "qlbm"
   ],
   "data": {
     "grid size": 16,

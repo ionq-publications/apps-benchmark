@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from apps_benchmark.core.registry import _discover_builtin_benchmarks
@@ -20,7 +21,8 @@ def test_qlbm_case_loads() -> None:
     assert benchmark_case.problem_type == "quantum_lattice_boltzmann_method"
     assert benchmark_case.instance_name == "16by16_2d_advection_diffusion"
     assert benchmark_case.num_qubits == 15
-    assert benchmark_case.solution_algorithms == ["qLBM"]
+    assert benchmark_case.solution_algorithms == ["qlbm"]
+    assert benchmark_case.open_solution_algorithms == ["qlbm"]
     assert benchmark_case.instance_id == "fe2e221a"
     assert benchmark_case.data["grid size"] == 16
     assert benchmark_case.data["spatial dimension"] == 2
@@ -38,8 +40,11 @@ def test_qlbm_registry_lists_case_without_runners() -> None:
         {
             "uuid": "fe2e221a",
             "name": "16by16_2d_advection_diffusion",
+            "problem_type": "quantum_lattice_boltzmann_method",
             "file": str(QLBM_CASE),
             "builtin": True,
+            "open_solution_algorithms": ["qlbm"],
+            "all_solutions_open": True,
         }
     ]
 
@@ -47,3 +52,21 @@ def test_qlbm_registry_lists_case_without_runners() -> None:
 def test_qlbm_support_files_exist() -> None:
     assert (QLBM_ROOT / "README.md").exists()
     assert (QLBM_ROOT / "qlbm_schema.json").exists()
+
+
+def test_qlbm_schema_matches_upstream_payload_contract() -> None:
+    with open(QLBM_ROOT / "qlbm_schema.json") as f:
+        schema = json.load(f)
+
+    assert schema["required"] == [
+        "benchmark_category",
+        "problem_type",
+        "instance_name",
+        "num_qubits",
+        "solution_algorithms",
+        "data",
+    ]
+    assert "instance_id" not in schema["required"]
+    assert schema["properties"]["instance_id"]["type"] == "string"
+    assert "optional" in schema["properties"]["instance_id"]["description"].lower()
+    assert schema["properties"]["open_solution_algorithms"]["type"] == "array"

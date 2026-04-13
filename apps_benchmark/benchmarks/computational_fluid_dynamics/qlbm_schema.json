@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "QLBM Public BenchmarkCase",
-  "description": "Public QLBM benchmark instance stored in the BenchmarkCase-style format used by apps-benchmark.",
+  "title": "QLBM Reference Instance Schema",
+  "description": "Schema for the upstream qlbm_instance.json payload. apps-benchmark may add an optional instance_id when this payload is checked into the built-in registry.",
   "type": "object",
   "required": [
     "benchmark_category",
@@ -33,7 +33,16 @@
       "minItems": 1
     },
     "instance_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Optional apps-benchmark registry identifier added to checked-in benchmark cases."
+    },
+    "open_solution_algorithms": {
+      "type": "array",
+      "description": "Optional list of solution_algorithms that are tagged as open benchmarks and require a user-provided solver.",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
     },
     "data": {
       "type": "object",
