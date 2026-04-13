@@ -34,8 +34,8 @@ class BenchmarkCase:
         solution_algorithms: List of compatible algorithm runner names. The first
             algorithm in this list is used by default when running via CLI. To use
             alternative algorithms, pass --algorithm=<name> to the run command.
-            Example: ["qft", "qft_lcu", "qft_hidden_shift"] allows running the
-            same problem with different solution approaches.
+            Example: ["cosine_qft", "hidden_phase_qft"] allows running the same
+            problem with different solution approaches.
         data: Problem-specific parameters and reference values
         instance_id: Unique identifier (auto-generated from UUID if not provided)
     """
