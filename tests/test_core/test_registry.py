@@ -151,6 +151,28 @@ class TestDiscoverBuiltinBenchmarks:
             assert isinstance(info["runners"], list)
             assert isinstance(info["benchmark_cases"], list)
 
+    def test_discover_builtin_benchmarks_includes_open_metadata(self):
+        """Open benchmark case metadata should be exposed in registry discovery."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        chemistry_cases = benchmarks["chemistry"]["benchmark_cases"]
+        qcafqmc_case = next(
+            entry for entry in chemistry_cases if entry["problem_type"] == "qc_afqmc"
+        )
+        assert qcafqmc_case["open_solution_algorithms"] == ["qc_afqmc"]
+        assert qcafqmc_case["all_solutions_open"] is True
+
+    def test_discover_builtin_benchmarks_finds_nested_open_cases(self):
+        """Nested benchmark_cases directories should be discovered for built-ins."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        chemistry_cases = benchmarks["chemistry"]["benchmark_cases"]
+        qcafqmc_cases = [entry for entry in chemistry_cases if entry["problem_type"] == "qc_afqmc"]
+
+        assert len(qcafqmc_cases) == 2
+        assert all(entry["open_solution_algorithms"] == ["qc_afqmc"] for entry in qcafqmc_cases)
+        assert all(entry["all_solutions_open"] is True for entry in qcafqmc_cases)
+
     def test_discover_builtin_benchmarks_fails_on_missing_instance_id(self, tmp_path, monkeypatch):
         """Test corrupted builtin problem instances fail discovery."""
         package_root = tmp_path / "mock_benchmarks"

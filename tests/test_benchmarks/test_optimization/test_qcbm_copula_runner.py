@@ -185,3 +185,17 @@ def test_builtin_loading_and_registry_discover_copula_runner_and_cases() -> None
     assert len(copied_cases) == 12
     assert "quantum_copula_ansatz_1_05_variables.instance.json" in copied_cases
     assert "quantum_copula_ansatz_2_10_variables.instance.json" in copied_cases
+
+
+def test_varqite_cases_are_tagged_as_open_benchmark_algorithms() -> None:
+    builtin_benchmarks = list_builtin_benchmarks()
+    optimization = builtin_benchmarks["optimization"]
+
+    varqite_cases = [
+        entry
+        for entry in optimization["benchmark_cases"]
+        if "varqite" in entry.get("open_solution_algorithms", [])
+    ]
+
+    assert len(varqite_cases) == 10
+    assert all(entry["all_solutions_open"] is False for entry in varqite_cases)

@@ -105,6 +105,15 @@ apps-benchmark run --self-test --backend=qiskit_aer_sim_backend
 
 For detailed DIY plugin instructions, see [DIY Benchmark](docs/DIY_BENCHMARK.md) and [DIY Backend](docs/DIY_BACKEND.md) guides.
 
+## Open vs Closed Benchmarks
+
+Shipped benchmark cases may optionally declare `open_solution_algorithms`.
+Those entries are open benchmarks: apps-benchmark ships the problem instance
+and scoring metadata, but not the solver. Closed benchmarks only advertise
+solvers that ship in this repository. The CLI lists open benchmark solvers and
+fails with a clear bring-your-own-solver message instead of crashing at import
+time.
+
 ## Built-in Closed Benchmark
 
 ### Optimization: Quantum Copula VaR
