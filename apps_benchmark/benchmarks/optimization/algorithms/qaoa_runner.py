@@ -8,7 +8,7 @@ For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 from functools import cache, partial
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence, cast
 
 import networkx as nx
 import numpy as np
@@ -80,7 +80,8 @@ class QaoaRunner(CircuitBenchmarkRunner):
         # Compute MaxCut merit figure: approximation ratio
         obj = partial(maxcut_obj, w=adj_matrix)  # Cost (objective) per bitstring
         total_energy = 0.0
-        total_shots = 0
+        total_shots: float = 0.0
+        probs = False
         for bitstring, count in counts_dict.items():
             probs = True if count < 1.0 else False
             bitstring_str = str(bitstring)[: benchmark_case.num_qubits]
@@ -110,11 +111,11 @@ QAOA circuit for MAXCUT
 """
 
 
-def append_zz_term(qc, q1, q2, gamma):
+def append_zz_term(qc: QuantumCircuit, q1: int, q2: int, gamma: float) -> None:
     qc.rzz(-gamma / 2, q1, q2)
 
 
-def append_maxcut_cost_operator_circuit(qc, G, gamma):
+def append_maxcut_cost_operator_circuit(qc: QuantumCircuit, G: nx.Graph, gamma: float) -> None:
     for i, j in G.edges():
         if nx.is_weighted(G):
             append_zz_term(qc, i, j, gamma * G[i][j]["weight"])
@@ -122,23 +123,23 @@ def append_maxcut_cost_operator_circuit(qc, G, gamma):
             append_zz_term(qc, i, j, gamma)
 
 
-def append_x_term(qc, q1, beta):
+def append_x_term(qc: QuantumCircuit, q1: int, beta: float) -> None:
     qc.rx(2 * beta, q1)
 
 
-def append_mixer_operator_circuit(qc, G, beta):
+def append_mixer_operator_circuit(qc: QuantumCircuit, G: nx.Graph, beta: float) -> None:
     for n in G.nodes():
         append_x_term(qc, n, beta)
 
 
 def get_qaoa_circuit(
     G: nx.Graph,
-    gammas: Sequence,
-    betas: Sequence,
+    gammas: Sequence[float],
+    betas: Sequence[float],
     save_statevector: bool = False,
-    qr: QuantumRegister = None,
-    cr: ClassicalRegister = None,
-):
+    qr: QuantumRegister | None = None,
+    cr: ClassicalRegister | None = None,
+) -> QuantumCircuit:
     """Generates a circuit for weighted MaxCut on graph G.
     Parameters
     ----------
@@ -229,7 +230,7 @@ Utilities for parameter initialization
 
 
 @cache
-def _get_gamma_beta_from_file():
+def _get_gamma_beta_from_file() -> pd.DataFrame:
     """
     Caches the dataframe after the first call to load JSON.
     Subsequent calls will get the dataframe from the cache to avoid extra I/O.
@@ -248,7 +249,11 @@ def _get_gamma_beta_from_file():
     return pd.read_json(json_path, orient="index")
 
 
-def get_fixed_gamma_beta(d, p, return_AR=False):
+def get_fixed_gamma_beta(
+    d: int,
+    p: int,
+    return_AR: bool = False,
+) -> tuple[Any, ...]:
     """
     Returns the parameters for QAOA for MaxCut on regular graphs from arXiv:2107.00677
 
@@ -269,16 +274,16 @@ def get_fixed_gamma_beta(d, p, return_AR=False):
         Only returned is flag return_AR is raised
     """
     df = _get_gamma_beta_from_file()
-    row = df[(df["d"] == d) & (df["p"] == p)]
-    if len(row) != 1:
+    row_df = df[(df["d"] == d) & (df["p"] == p)]
+    if len(row_df) != 1:
         raise ValueError(f"Failed to retrieve fixed angles for d={d}, p={p}")
-    row = row.squeeze()
+    row = cast(Any, row_df.squeeze())
     if return_AR:
         return row["gamma"], row["beta"], row["AR"]
     else:
         return row["gamma"], row["beta"]
 
 
-def invert_counts(counts):
+def invert_counts(counts: Mapping[str, int | float]) -> dict[str, int | float]:
     """Convert from lsb to msb ordering and vice versa"""
     return {k[::-1]: v for k, v in counts.items()}

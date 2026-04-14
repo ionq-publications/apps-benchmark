@@ -10,11 +10,11 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from apps_benchmark.cli import _find_benchmark_case_by_uuid
 from apps_benchmark.backends.mock_backend import MockBackend
 from apps_benchmark.benchmarks.image_loading.algorithms.image_loading_runner import (
     ImageLoadingRunner,
 )
+from apps_benchmark.cli import _find_benchmark_case_by_uuid
 from apps_benchmark.core.registry import list_builtin_benchmarks
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 from PIL import Image

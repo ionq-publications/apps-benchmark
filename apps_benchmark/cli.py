@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import cast
 
 import click
-from qiskit_ionq import IonQProvider
 
 from apps_benchmark.core.backend import AbstractBackend
 from apps_benchmark.core.benchmark import AbstractAlgoRunner, BenchmarkSubmissionRecord
@@ -176,7 +175,7 @@ def _select_solution_algorithm(
 
 
 # hacky but unblocks timeline
-def _get_ionq_backend_api_key():
+def _get_ionq_backend_api_key() -> str:
     """
     Get IonQ API key from environment variable.
 
@@ -265,7 +264,7 @@ def _load_backend(backend_name: str) -> AbstractBackend:
             backend_class = cast(type[AbstractBackend], getattr(module, str(backend_info["class"])))
             backend_instance = backend_class()
 
-        return backend_instance
+        return cast(AbstractBackend, backend_instance)
 
     except Exception as exc:
         raise BackendError(f"Failed to load backend '{backend_name}': {exc}") from exc
@@ -442,6 +441,13 @@ def _run_single_benchmark(
         click.echo(f"  Type: {problem.problem_type}")
         click.echo(f"  Qubits: {problem.num_qubits}")
 
+        # Show available algorithms and which one will be used
+        if len(problem.solution_algorithms) > 1:
+            click.echo(f"  Available algorithms: {', '.join(problem.solution_algorithms)}")
+            if not algorithm:
+                click.echo("  ℹ  Use --algorithm to select a different solution algorithm")
+        else:
+            click.echo(f"  Algorithm: {problem.solution_algorithms[0]}")
     except Exception as exc:
         click.echo(f"Error loading problem instance: {exc}", err=True)
         raise SystemExit(1) from exc
@@ -619,7 +625,7 @@ def _run_category_benchmarks(
 
     # Add DIY benchmark cases if category exists in DIY
     if category in diy:
-        for runner_name, runner_info in diy[category].items():
+        for _runner_name, runner_info in diy[category].items():
             benchmark_cases.extend(runner_info.get("benchmark_cases", []))
 
     if not benchmark_cases:
@@ -646,6 +652,9 @@ def _run_category_benchmarks(
         click.echo(f"\nNo benchmark cases found with num_qubits <= {qbit_max}", err=True)
         raise SystemExit(1)
 
+    filtered_out_count = len(benchmark_cases) - len(filtered_cases)
+    click.echo(f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})")
+    click.echo(f"\nFound {len(filtered_cases)} benchmark(s) to run:")
     available_runner_names = _get_available_runner_names(category, builtin, diy)
     runnable_cases: list[tuple[dict, BenchmarkCase, str]] = []
     open_skipped = 0

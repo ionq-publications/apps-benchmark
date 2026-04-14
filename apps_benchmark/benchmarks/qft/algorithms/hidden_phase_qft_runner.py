@@ -11,8 +11,8 @@ import math
 from typing import Any
 
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QFT
 from qiskit.quantum_info.analysis import hellinger_fidelity
+from qiskit.synthesis.qft import synth_qft_full
 
 from apps_benchmark.core.backend import MeasurementBatch
 from apps_benchmark.core.qc_benchmark_runner import CircuitBenchmarkRunner
@@ -33,13 +33,13 @@ class HiddenPhaseQftRunner(CircuitBenchmarkRunner):
         """
         shift = int(benchmark_case.data["phase_index"])
         num_qubits = benchmark_case.num_qubits
-        qft_gate = QFT(num_qubits)
+        qft_circuit = synth_qft_full(num_qubits)
 
         qc = QuantumCircuit(num_qubits + 1)
         qc.h(range(num_qubits + 1))
         qc.barrier()
 
-        qc.append(qft_gate, qc.qubits[:-1])
+        qc.compose(qft_circuit, qubits=qc.qubits[:-1], inplace=True)
         qc.barrier()
 
         for i_q in range(num_qubits):
@@ -53,7 +53,7 @@ class HiddenPhaseQftRunner(CircuitBenchmarkRunner):
         qc.x(num_qubits)
         qc.barrier()
 
-        qc.append(qft_gate, qc.qubits[:-1])
+        qc.compose(qft_circuit, qubits=qc.qubits[:-1], inplace=True)
         qc.barrier()
 
         qc.h(range(num_qubits + 1))

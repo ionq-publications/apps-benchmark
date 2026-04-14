@@ -1,0 +1,68 @@
+{
+  "benchmark_category": "machine_learning",
+  "problem_type": "qcnn_mnist_binary_classification",
+  "instance_name": "qcnn_09q_digits_1_7",
+  "num_qubits": 9,
+  "solution_algorithms": [
+    "qcnn"
+  ],
+  "data": {
+    "dataset": {
+      "name": "MNIST",
+      "source_digit_pair": [
+        1,
+        7
+      ],
+      "label_values": [
+        0,
+        1
+      ],
+      "evaluation_examples": 50,
+      "evaluation_label_histogram": [
+        50,
+        0
+      ],
+      "source_image_shape": [
+        100,
+        1,
+        28,
+        28
+      ],
+      "resize_to": [
+        3,
+        3
+      ],
+      "resize_mode": "pillow_float_bilinear",
+      "normalization": "l2_per_image"
+    },
+    "quantum_model": {
+      "feature_map": "ry_per_pixel",
+      "entangling_pattern": "linear_cx_chain",
+      "measurement_observables": [
+        "X",
+        "Y",
+        "Z"
+      ],
+      "trained_ansatz_bound": true,
+      "trained_ansatz_dir": "trained_ansatz_9q_17"
+    },
+    "classical_model": {
+      "type": "mlp",
+      "input_features": 3,
+      "hidden_units": 2,
+      "output_classes": 2,
+      "activation": "relu_after_output_layer",
+      "parameter_source": "parameter_file_tail",
+      "consumed_parameter_count": 14,
+      "unused_parameter_prefix_count": 44,
+      "total_parameter_file_entries": 58,
+      "training_batch_size": 20,
+      "parameter_file": "final_params_MNIST_1_7_batch_size_20_classical_nn_3_2_2_pooling_last_9q_circ.txt"
+    },
+    "assets": {
+      "test_images_file": "new_test_set_50_images_MNIST_1_7_batch_size_20_pooling_last_9q_circ_322_classifier.npy",
+      "test_labels_file": "new_test_set_50_labels_MNIST_1_7_batch_size_20_pooling_last_9q_circ_322_classifier.txt"
+    }
+  },
+  "instance_id": "22fa7a5e"
+}
