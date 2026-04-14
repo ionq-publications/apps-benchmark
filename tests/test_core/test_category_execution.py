@@ -120,6 +120,7 @@ class TestCategoryExecution:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
             ],
         )
 
@@ -186,6 +187,7 @@ class TestCategoryExecutionWithDifferentBackends:
                 "run",
                 "--backend=qiskit_aer_sim_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
                 "--shots=10",  # Use fewer shots for speed
             ],
         )
@@ -209,6 +211,7 @@ class TestResultAggregation:
                 "run",
                 "--backend=mock_backend",
                 "--category=chemistry",
+                "--qbit-max=10",
                 "--shots=100",
             ],
         )

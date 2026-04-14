@@ -97,18 +97,19 @@ class TestRunCommand:
         assert "Either --case-uuid or --category is required" in result.output
 
     def test_run_default_qbit_max(self, cli_runner, mock_home):
-        """Test that run command has default qbit-max of 10."""
+        """Test that run command allows None qbit-max when not specified."""
         # Needs category or UUID to proceed
         result = cli_runner.invoke(main, ["run", "--backend=mock_backend", "--category=chemistry"])
-        # Will fail at "category not yet implemented" but validates defaults
-        assert "--qbit-max" not in result.output or "Max qubits: 10" in result.output
+        # qbit-max is now None by default (lazy evaluation), not 10
+        assert result.exit_code == 0
+        assert "Max qubits: None" in result.output
 
     def test_run_default_shots(self, cli_runner, mock_home):
         """Test that run command advertises benchmark-specific shot defaults."""
         # Needs category or UUID to proceed
         result = cli_runner.invoke(main, ["run", "--backend=mock_backend", "--category=chemistry"])
         # Should show default shots value in category execution
-        assert result.exit_code == 0
+        assert result.exit_code == 0, f"Run command with category should succeed, got:\n{result.output}"
         assert "set per benchmark: 10000" in result.output
 
     def test_run_with_category(self, cli_runner, mock_home):

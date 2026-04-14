@@ -531,7 +531,10 @@ def _run_category_benchmarks(
             with open(case_path) as f:
                 data = json.load(f)
             num_qubits = data.get("num_qubits", 0)
-            if num_qubits <= qbit_max:
+            # qbit-max is a lazy-compare value it can be none here if user did not set it and we are relying
+            # on a default that is applied later, in that case we want to include all cases and let the default logic
+            # handle it later
+            if qbit_max is None or (num_qubits <= qbit_max):
                 filtered_cases.append(case_info)
         except Exception as e:
             click.echo(f"Warning: Failed to load case {case_path.name}")
@@ -539,7 +542,7 @@ def _run_category_benchmarks(
             click.echo(f"Skipping case {case_path.name}", err=True)
             continue
 
-    if not filtered_cases:
+    if qbit_max is not None and not filtered_cases:
         click.echo(f"\nNo benchmark cases found with num_qubits <= {qbit_max}", err=True)
         raise SystemExit(1)
     
@@ -553,6 +556,7 @@ def _run_category_benchmarks(
     # Run all benchmarks
     results: list[BenchmarkSubmissionRecord] = []
     total = len(filtered_cases)
+    resolved_shots = cli_shots  # Initialize with CLI value as fallback
 
     for idx, case_info in enumerate(filtered_cases, 1):
         case_path = Path(case_info["file"])
@@ -757,9 +761,8 @@ def run(
     # Track whether --qbit-max was explicitly provided before applying defaults
     qbit_max_explicitly_set = qbit_max is not None
 
-    # Apply defaults for parameters still not set
-    if qbit_max is None:
-        qbit_max = 10
+    # Do NOT Apply defaults for qbits-max, 
+    # it is a special parameters that is lazy-resolved
 
     # Handle save-config if requested
     if save_config:

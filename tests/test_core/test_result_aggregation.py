@@ -228,7 +228,6 @@ class TestResultAggregationCalculations:
         """Test total shots are summed correctly."""
         runner = CliRunner()
         from apps_benchmark.cli import main
-
         result = runner.invoke(
             main,
             [
