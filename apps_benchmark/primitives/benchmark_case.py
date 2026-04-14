@@ -27,16 +27,19 @@ class BenchmarkCase:
     Instances are typically loaded from JSON files.
 
     Attributes:
-        benchmark_category: Category name (e.g., "chemistry", "cryptography")
+        benchmark_category: Category name (e.g., "chemistry", "qft")
         problem_type: Type of problem (e.g., "hydrogen_lattice_vqe", "qft")
         instance_name: Human-readable name for this specific instance
         num_qubits: Number of qubits required to run this problem
         solution_algorithms: List of compatible algorithm runner names. The first
-            algorithm in this list is used by default when running via CLI. To use
-            alternative algorithms, pass --algorithm=<name> to the run command.
-            Example: ["cosine_qft", "hidden_phase_qft"] allows running the same
-            problem with different solution approaches.
+            shipped closed algorithm in this list is used by default when running
+            via CLI. To use alternative algorithms, pass --algorithm=<name> to
+            the run command. Example: ["cosine_qft", "hidden_phase_qft"] allows
+            running the same problem with different solution approaches.
         data: Problem-specific parameters and reference values
+        open_solution_algorithms: Optional subset of solution_algorithms that are
+            tagged as open benchmarks. apps-benchmark lists these algorithms but
+            does not ship solvers for them.
         instance_id: Unique identifier (auto-generated from UUID if not provided)
     """
 
@@ -46,10 +49,21 @@ class BenchmarkCase:
     num_qubits: int
     solution_algorithms: list[str]
     data: dict[str, Any]
+    open_solution_algorithms: list[str] | None = None
     instance_id: str | None = None
 
     def __post_init__(self) -> None:
-        """Generate instance_id if not provided."""
+        """Validate optional open-solver metadata and generate instance_id."""
+        if self.open_solution_algorithms is not None:
+            invalid_algorithms = sorted(
+                set(self.open_solution_algorithms) - set(self.solution_algorithms)
+            )
+            if invalid_algorithms:
+                raise ValueError(
+                    "open_solution_algorithms must be a subset of solution_algorithms. "
+                    f"Unexpected values: {invalid_algorithms}"
+                )
+
         if self.instance_id is None:
             self.instance_id = uuid.uuid4().hex[:8]
 
@@ -86,6 +100,9 @@ class BenchmarkCase:
         """
         instance_data = asdict(self)
         converter = converter or {}
+
+        if not instance_data.get("open_solution_algorithms"):
+            instance_data.pop("open_solution_algorithms", None)
 
         # Apply converters to data fields
         for key in converter:

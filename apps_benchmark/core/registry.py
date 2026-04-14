@@ -104,11 +104,36 @@ def _load_problem_instance_registry_entry(json_file: Path, builtin: bool) -> dic
     if not isinstance(instance_id, str) or not instance_id.strip():
         raise RegistryError(f"Problem instance file {json_file} is missing required 'instance_id'.")
 
+    solution_algorithms = data.get("solution_algorithms")
+    if not isinstance(solution_algorithms, list):
+        raise RegistryError(
+            f"Problem instance file {json_file} is missing valid 'solution_algorithms'."
+        )
+
+    open_solution_algorithms = data.get("open_solution_algorithms") or []
+    if not isinstance(open_solution_algorithms, list) or not all(
+        isinstance(algorithm, str) for algorithm in open_solution_algorithms
+    ):
+        raise RegistryError(
+            f"Problem instance file {json_file} has invalid 'open_solution_algorithms'."
+        )
+
+    invalid_open_algorithms = sorted(set(open_solution_algorithms) - set(solution_algorithms))
+    if invalid_open_algorithms:
+        raise RegistryError(
+            f"Problem instance file {json_file} marks unknown open_solution_algorithms: "
+            f"{invalid_open_algorithms}."
+        )
+
     return {
         "uuid": instance_id,
         "name": data.get("instance_name", json_file.stem),
+        "problem_type": data.get("problem_type"),
         "file": str(json_file),
         "builtin": builtin,
+        "open_solution_algorithms": open_solution_algorithms,
+        "all_solutions_open": bool(solution_algorithms)
+        and set(solution_algorithms) == set(open_solution_algorithms),
     }
 
 
@@ -188,23 +213,21 @@ def _discover_builtin_benchmarks() -> dict[str, dict]:
         algorithms_dir = category_dir / "algorithms"
         runners = []
         if algorithms_dir.exists():
-            for py_file in algorithms_dir.glob("*_runner.py"):
+            for py_file in sorted(algorithms_dir.glob("*_runner.py")):
                 runner_name = py_file.stem.replace("_runner", "")
                 runners.append(runner_name)
 
         # Find problem instances
-        instances_dir = category_dir / "benchmark_cases"
         benchmark_cases = []
-        if instances_dir.exists():
-            for json_file in instances_dir.glob("*.json"):
-                try:
-                    # Load and validate problem instance
-                    entry = _load_problem_instance_registry_entry(json_file, builtin=True)
-                    benchmark_cases.append(entry)
-                except RegistryError:
-                    raise
-                except Exception as e:
-                    print(f"Warning: Failed to load {json_file}: {e}")
+        for json_file in sorted(category_dir.glob("**/benchmark_cases/*.json")):
+            try:
+                # Load and validate problem instance
+                entry = _load_problem_instance_registry_entry(json_file, builtin=True)
+                benchmark_cases.append(entry)
+            except RegistryError:
+                raise
+            except Exception as e:
+                print(f"Warning: Failed to load {json_file}: {e}")
 
         benchmarks[category_name] = {
             "location": "/benchmarks",

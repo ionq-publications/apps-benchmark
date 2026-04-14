@@ -904,13 +904,16 @@ class VqePuccdRunner(CircuitBenchmarkRunner):
             if sim_mode == "shot-based_sampling":
                 fraction_label = "Correlation Energy Ratio (Ec_VQE / Ec_DOCI)"
                 fraction_suffix = " [unbounded under shot noise]"
-                
+
             se_percentage = (
                 f"{fraction_correlation_energy_se * 100.0:.2f}"
                 if not np.isnan(fraction_correlation_energy_se)
                 else "NaN"
             )
-            print(f"    {fraction_label}: {fraction_correlation_energy * 100.0:.2f}% ± {se_percentage}%{fraction_suffix}")  
+            print(
+                f"    {fraction_label}: {fraction_correlation_energy * 100.0:.2f}% ± "
+                f"{se_percentage}%{fraction_suffix}"
+            )
 
         elif final_energy is None:
             print(

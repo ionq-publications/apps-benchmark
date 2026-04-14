@@ -125,7 +125,7 @@ class CircuitBenchmarkRunner(AbstractAlgoRunner):
             baseline_scores[draw] = float(mf["score"])
 
         header = asdict(benchmark_case)
-        [header.pop(key) for key in ["data", "solution_algorithms"]]
+        [header.pop(key, None) for key in ["data", "solution_algorithms", "open_solution_algorithms"]]
         return BaselineScore(
             **header,
             solution_algorithm=self.name(),
@@ -157,6 +157,7 @@ class CircuitBenchmarkRunner(AbstractAlgoRunner):
         instance_data = asdict(benchmark_case)
         instance_data.pop("data")
         instance_data.pop("solution_algorithms")
+        instance_data.pop("open_solution_algorithms", None)
         return CircuitStats(
             **instance_data,
             solution_algorithm=self.name(),

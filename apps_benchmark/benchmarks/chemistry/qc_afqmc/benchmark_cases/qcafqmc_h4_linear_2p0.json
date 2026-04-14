@@ -6,6 +6,10 @@
   "solution_algorithms": [
     "qc_afqmc"
   ],
+  "open_solution_algorithms": [
+    "qc_afqmc"
+  ],
+  "instance_id": "b56cc063",
   "data": {
     "spec_version": "1.0",
     "description": "H4 linear chain at 2.0 Angstrom spacing in STO-3G for the QC-AFQMC benchmark.",

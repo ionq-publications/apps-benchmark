@@ -10,7 +10,9 @@ International (CC BY-NC-ND 4.0) License.
 For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 
+import importlib
 import json
+import warnings
 from pathlib import Path
 
 import pytest
@@ -150,6 +152,56 @@ class TestDiscoverBuiltinBenchmarks:
             assert "benchmark_cases" in info
             assert isinstance(info["runners"], list)
             assert isinstance(info["benchmark_cases"], list)
+
+    @pytest.mark.parametrize(
+        "module_name",
+        [
+            "apps_benchmark.benchmarks.qft.algorithms.cosine_qft_runner",
+            "apps_benchmark.benchmarks.qft.algorithms.hidden_phase_qft_runner",
+        ],
+    )
+    def test_qft_runner_import_is_warning_free(self, module_name: str):
+        """Test that importing the QFT runners does not emit deprecation warnings."""
+        module = importlib.import_module(module_name)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            importlib.reload(module)
+
+        assert not any(
+            issubclass(warning.category, DeprecationWarning)
+            and "QFT" in str(warning.message)
+            for warning in caught
+        )
+    def test_discover_builtin_benchmarks_includes_open_metadata(self):
+        """Open benchmark case metadata should be exposed in registry discovery."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        chemistry_cases = benchmarks["chemistry"]["benchmark_cases"]
+        qcafqmc_case = next(
+            entry for entry in chemistry_cases if entry["problem_type"] == "qc_afqmc"
+        )
+        assert qcafqmc_case["open_solution_algorithms"] == ["qc_afqmc"]
+        assert qcafqmc_case["all_solutions_open"] is True
+
+    def test_discover_builtin_benchmarks_includes_qlbm_open_metadata(self):
+        """QLBM discovery should surface open benchmark metadata."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        cfd_case = benchmarks["computational_fluid_dynamics"]["benchmark_cases"][0]
+        assert cfd_case["open_solution_algorithms"] == ["qlbm"]
+        assert cfd_case["all_solutions_open"] is True
+
+    def test_discover_builtin_benchmarks_finds_nested_open_cases(self):
+        """Nested benchmark_cases directories should be discovered for built-ins."""
+        benchmarks = _discover_builtin_benchmarks()
+
+        chemistry_cases = benchmarks["chemistry"]["benchmark_cases"]
+        qcafqmc_cases = [entry for entry in chemistry_cases if entry["problem_type"] == "qc_afqmc"]
+
+        assert len(qcafqmc_cases) == 2
+        assert all(entry["open_solution_algorithms"] == ["qc_afqmc"] for entry in qcafqmc_cases)
+        assert all(entry["all_solutions_open"] is True for entry in qcafqmc_cases)
 
     def test_discover_builtin_benchmarks_fails_on_missing_instance_id(self, tmp_path, monkeypatch):
         """Test corrupted builtin problem instances fail discovery."""
