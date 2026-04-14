@@ -12,7 +12,7 @@ guide to make other benchmark tests to run on any QPU with a backend available.
 Approximate runtime for a fresh local setup: 5-15 minutes, mostly spent installing dependencies. Once installed, the
 verification commands below finish in seconds to under a minute each.
 
-1. Create and activate a Python 3.12 environment.
+1. Create and activate a Python 3.12 environment. We recommend using `micromamba`.
 
    ```bash
    micromamba create -n apps-benchmark python=3.12
@@ -36,38 +36,6 @@ verification commands below finish in seconds to under a minute each.
    ```bash
    apps-benchmark run --backend=mock_backend --case-uuid=610cfb55
    ```
-
-## Installation (Development)
-
-### Using Micromamba (Recommended)
-Use Python 3.12 for the first run. The project metadata requires Python `>=3.12`.
-
-```bash
-# Create a new environment with Python 3.12
-micromamba create -n apps-benchmark python=3.12
-
-# Activate the environment
-micromamba activate apps-benchmark
-```
-
-### Using venv
-
-```bash
-# Create and activate a virtualenv with Python 3.12
-python3.12 -m venv .venv
-source .venv/bin/activate
-```
-
-### Core Installation (Development)
-
-```bash
-# Clone and navigate to repository
-cd apps-benchmark
-
-# Install in editable mode with development dependencies
-pip install -e ".[dev]"
-
-```
 
 ## Quick Start
 
@@ -113,28 +81,6 @@ and scoring metadata, but not the solver. Closed benchmarks only advertise
 solvers that ship in this repository. The CLI lists open benchmark solvers and
 fails with a clear bring-your-own-solver message instead of crashing at import
 time.
-
-## Built-in Closed Benchmark
-
-### Optimization: Quantum Copula VaR
-
-- Runner: `qcbm_copula`
-- Benchmark cases: `apps_benchmark/benchmarks/optimization/benchmark_cases/quantum_copula_*.instance.json`
-- Problem family: portfolio risk analysis with 12 closed instances spanning `ansatz_1` and `ansatz_2` over 5 to 10 variables from `AAPL, ADBE, AMZN, FORD, INTC, JPM, KO, MCD, MSFT, PFE`
-- Qubit scaling: 3 qubits per variable, for 15 to 30 qubits total
-- Training/evaluation narrative: QCBM trained in copula space with MMD and a Gaussian kernel of width `sigma = 1`, then mapped back to real space with inverse Student-t marginals to estimate out-of-sample 95% VaR
-- Scoring: `min(VaR_ratio, 1 / VaR_ratio)`, where `VaR_ratio` is generated VaR divided by stored reference VaR
-- Closed-benchmark behavior: the cases store the reference VaR directly, so benchmark execution is deterministic and does not download market data at runtime
-
-## Built-in Benchmarks
-
-### QCNN
-
-- Runner: `qcnn`
-- Benchmark cases: `apps_benchmark/benchmarks/qcnn/benchmark_cases/qcnn_*.instance.json`
-- Task: binary MNIST classification with four fixed cases at `3x3` and `4x4` image size
-- Runtime: one image produces three circuits for `X`, `Y`, and `Z`, then the three observables feed a fixed `3 -> 2 -> 2` classifier
-- Score: classification accuracy on the 50-example evaluation slice stored with each case
 
 ## Backend setup for IonQ cloud
 For using IonQ Cloud Backend, simulator or live, you will need to set the
