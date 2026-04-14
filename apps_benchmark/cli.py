@@ -34,6 +34,7 @@ from apps_benchmark.errors import (
     BenchmarkError,
     ConfigNotFoundError,
     ConfigValidationError,
+    OpenBenchmarkError,
 )
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 from apps_benchmark.utils.cli_config import load_cli_config, save_cli_config
@@ -41,12 +42,13 @@ from apps_benchmark.utils.config import get_config_file_path, get_local_dev_dir_
 
 _DEFAULT_SHOTS_PER_QC = 1000
 
+
 def _resolve_shots(
-        cli_set_shots: int | None,
-        config_set_shots: int | None,
-        benchmark_set_shots: int | None,
-    ) -> int:
-    """"
+    cli_set_shots: int | None,
+    config_set_shots: int | None,
+    benchmark_set_shots: int | None,
+) -> int:
+    """ "
     Shot count gets a little weird. Priority order for shot count is:
         1. User-specified CLI shots (if provided)
         2. Config file shots (if provided)
@@ -55,26 +57,121 @@ def _resolve_shots(
     """
     if cli_set_shots is not None:
         click.echo(f"Shots per circuit set by user: {cli_set_shots}")
-        return cli_set_shots #CLI user set value overrides all else
+        return cli_set_shots  # CLI user set value overrides all else
     elif config_set_shots is not None:
         click.echo(f"Shots per circuit set by config: {config_set_shots}")
         return config_set_shots  # config create from a past CLI run , 2nd priority
     elif benchmark_set_shots is not None:
         click.echo(f"Shots per circuit set per benchmark: {benchmark_set_shots}")
-        return benchmark_set_shots #benchmark-specific recommended shots, 3rd priority
+        return benchmark_set_shots  # benchmark-specific recommended shots, 3rd priority
     click.echo(f"Shots per circuit falls to default: {_DEFAULT_SHOTS_PER_QC}")
-    return _DEFAULT_SHOTS_PER_QC #default shots, lowest priority
+    return _DEFAULT_SHOTS_PER_QC  # default shots, lowest priority
+
 
 def _get_shots_for_case(bm_case: BenchmarkCase) -> int | None:
-    """ get shots for a benchmark. None, or an integer >= 1. """
+    """get shots for a benchmark. None, or an integer >= 1."""
     configured_shots = bm_case.data.get("recommended_minimum_shots_per_qc")
     if configured_shots is not None:
         config_shots = int(configured_shots)
         if config_shots <= 0:
-            raise ValueError(f"Error: shots in BenchmarkCase '{bm_case.instance_name}' must be a positive integer. "
-                             f"Got {config_shots}")
+            raise ValueError(
+                f"Error: shots in BenchmarkCase '{bm_case.instance_name}' must be a positive integer. "
+                f"Got {config_shots}"
+            )
         return config_shots
     return None
+
+
+def _get_available_runner_names(
+    category: str,
+    builtin_benchmarks: dict[str, dict] | None = None,
+    diy_benchmarks: dict[str, dict] | None = None,
+) -> set[str]:
+    """Return all shipped runner names for a category."""
+    if builtin_benchmarks is None:
+        builtin_benchmarks = list_builtin_benchmarks()
+    if diy_benchmarks is None:
+        diy_benchmarks = list_diy_benchmarks()
+
+    runner_names: set[str] = set()
+    if category in builtin_benchmarks:
+        runner_names.update(builtin_benchmarks[category].get("runners", []))
+    if category in diy_benchmarks:
+        runner_names.update(diy_benchmarks[category].keys())
+    return runner_names
+
+
+def _classify_solution_algorithms(
+    benchmark_case: BenchmarkCase,
+    available_runner_names: set[str],
+) -> tuple[list[str], list[str], list[str]]:
+    """Partition algorithms into open, shipped, and unmarked ghost entries."""
+    open_algorithms = benchmark_case.open_solution_algorithms or []
+    open_algorithm_set = set(open_algorithms)
+
+    shipped_algorithms = [
+        algorithm
+        for algorithm in benchmark_case.solution_algorithms
+        if algorithm not in open_algorithm_set and algorithm in available_runner_names
+    ]
+    ghost_algorithms = [
+        algorithm
+        for algorithm in benchmark_case.solution_algorithms
+        if algorithm not in open_algorithm_set and algorithm not in available_runner_names
+    ]
+    return open_algorithms, shipped_algorithms, ghost_algorithms
+
+
+def _select_solution_algorithm(
+    benchmark_case: BenchmarkCase,
+    available_runner_names: set[str],
+    requested_algorithm: str | None = None,
+) -> str:
+    """Choose a runnable algorithm or raise a clear open-benchmark error."""
+    open_algorithms, shipped_algorithms, ghost_algorithms = _classify_solution_algorithms(
+        benchmark_case, available_runner_names
+    )
+
+    if requested_algorithm is not None:
+        if requested_algorithm not in benchmark_case.solution_algorithms:
+            raise BenchmarkError(
+                f"algorithm '{requested_algorithm}' not available for this problem. "
+                f"Choose from: {benchmark_case.solution_algorithms}"
+            )
+        if requested_algorithm in open_algorithms:
+            raise OpenBenchmarkError(
+                f"algorithm '{requested_algorithm}' for case '{benchmark_case.instance_name}' "
+                "is tagged as an open benchmark solver. apps-benchmark does not ship "
+                "this solver; bring your own solver."
+            )
+        if requested_algorithm in ghost_algorithms:
+            raise BenchmarkError(
+                f"algorithm '{requested_algorithm}' is listed for case "
+                f"'{benchmark_case.instance_name}' but no built-in or DIY runner is "
+                "registered. Mark it in open_solution_algorithms if this is intentional."
+            )
+        return requested_algorithm
+
+    if shipped_algorithms:
+        return shipped_algorithms[0]
+
+    if open_algorithms:
+        raise OpenBenchmarkError(
+            f"case '{benchmark_case.instance_name}' is tagged as an open benchmark. "
+            "apps-benchmark does not ship solvers for: "
+            f"{', '.join(open_algorithms)}. Bring your own solver."
+        )
+
+    if ghost_algorithms:
+        raise BenchmarkError(
+            f"case '{benchmark_case.instance_name}' lists algorithms with no shipped runners: "
+            f"{', '.join(ghost_algorithms)}. Mark them in open_solution_algorithms if "
+            "they are intentionally bring-your-own-solver benchmarks."
+        )
+
+    raise BenchmarkError(
+        f"case '{benchmark_case.instance_name}' does not define any runnable solution algorithms."
+    )
 
 
 # hacky but unblocks timeline
@@ -183,34 +280,15 @@ def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str, str] | None:
     Returns:
         Tuple of (problem_path, category, runner_name) or None if not found
     """
-    import json
-    from pathlib import Path
-
     # Search built-in benchmarks
-    benchmarks_dir = Path(__file__).parent / "benchmarks"
-
-    for category_dir in benchmarks_dir.iterdir():
-        if not category_dir.is_dir() or category_dir.name.startswith("_"):
-            continue
-
-        instances_dir = category_dir / "benchmark_cases"
-        if not instances_dir.exists():
-            continue
-
-        for json_file in instances_dir.glob("*.json"):
-            try:
-                with open(json_file) as f:
-                    data = json.load(f)
-
-                if data.get("instance_id") == uuid:
-                    # Found it! Determine runner name from solution_algorithms
-                    solution_algos = data.get("solution_algorithms")
-                    if isinstance(solution_algos, list) and solution_algos:
-                        runner_name = solution_algos[0]
-                        if isinstance(runner_name, str):
-                            return (json_file, category_dir.name, runner_name)
-            except Exception:
-                continue
+    builtin = list_builtin_benchmarks()
+    for category, info in builtin.items():
+        for case_info in info.get("benchmark_cases", []):
+            if case_info.get("uuid") == uuid:
+                case_path = Path(case_info["file"])
+                benchmark_case = BenchmarkCase.load_from_database(case_path)
+                runner_name = benchmark_case.solution_algorithms[0]
+                return (case_path, category, runner_name)
 
     # Search DIY benchmarks
     diy = list_diy_benchmarks()
@@ -324,7 +402,13 @@ def _load_runner(category: str, runner_name: str) -> AbstractAlgoRunner:
         raise
 
 
-def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | None, config_shots: int | None, algorithm: str | None = None) -> None:
+def _run_single_benchmark(
+    backend: AbstractBackend,
+    uuid: str,
+    cli_shots: int | None,
+    config_shots: int | None,
+    algorithm: str | None = None,
+) -> None:
     """
     Run a single benchmark by UUID.
 
@@ -336,7 +420,8 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
         algorithm: Solution algorithm to use. If specified, must be in the benchmark's
                    solution_algorithms list. If None, uses the first algorithm in the list.
                    Use this to select alternative solution methods for benchmarks that
-                   support multiple approaches (e.g., 'qft_lcu' instead of 'qft').
+                   support multiple approaches (e.g., 'hidden_phase_qft' instead of
+                   'cosine_qft').
     """
     click.echo(f"\nSearching for problem instance '{uuid}'...")
 
@@ -346,8 +431,7 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
         click.echo(f"Error: Benchmark case '{uuid}' not found", err=True)
         raise SystemExit(1)
 
-    problem_path, category, default_runner_name = result
-    runner_name = algorithm if algorithm else default_runner_name
+    problem_path, category, _default_runner_name = result
     click.echo(f"✓ Found: {problem_path.name} (category: {category})")
 
     # Load problem instance
@@ -369,9 +453,30 @@ def _run_single_benchmark(backend: AbstractBackend, uuid: str, cli_shots: int | 
         click.echo(f"Error loading problem instance: {exc}", err=True)
         raise SystemExit(1) from exc
 
-    if algorithm and algorithm not in problem.solution_algorithms:
-        click.echo(f"Error: algorithm '{algorithm}' not available for this problem. Choose from: {problem.solution_algorithms}", err=True)
-        raise SystemExit(1)
+    available_runner_names = _get_available_runner_names(category)
+    open_algorithms, _, ghost_algorithms = _classify_solution_algorithms(
+        problem, available_runner_names
+    )
+    if len(problem.solution_algorithms) > 1:
+        click.echo(f"  Available algorithms: {', '.join(problem.solution_algorithms)}")
+        if not algorithm:
+            click.echo("  ℹ  Use --algorithm to select a different solution algorithm")
+    if open_algorithms:
+        click.echo(
+            f"  Open benchmark algorithms: {', '.join(open_algorithms)} (bring your own solver)"
+        )
+    if ghost_algorithms:
+        click.echo(f"  Warning: algorithms missing shipped runners: {', '.join(ghost_algorithms)}")
+
+    try:
+        runner_name = _select_solution_algorithm(problem, available_runner_names, algorithm)
+        if len(problem.solution_algorithms) > 1:
+            click.echo(f"  Using algorithm: {runner_name}")
+        else:
+            click.echo(f"  Algorithm: {runner_name}")
+    except BenchmarkError as exc:
+        click.echo(f"Error selecting algorithm: {exc}", err=True)
+        raise SystemExit(1) from exc
 
     # Load runner
     try:
@@ -460,7 +565,7 @@ def _display_category_results(results: list, category: str, backend_name: str, s
     click.echo(f"{'Problem':<25} {'Algorithm':<15} {'Score':<10} {'Time (s)':<10}")
     click.echo("-" * 60)
 
-    #list them alphabetically by problem name( which should lead by count, by convention)
+    # list them alphabetically by problem name( which should lead by count, by convention)
     for result in sorted(results, key=lambda r: r.instance_name):
         problem_name = result.instance_name[:24]  # Truncate if too long
         algo_name = result.solution_algorithm[:14]
@@ -473,7 +578,12 @@ def _display_category_results(results: list, category: str, backend_name: str, s
 
 
 def _run_category_benchmarks(
-    backend: AbstractBackend, category: str, qbit_max: int, cli_shots: int | None, config_shots: int | None, algorithm: str | None = None
+    backend: AbstractBackend,
+    category: str,
+    qbit_max: int,
+    cli_shots: int | None,
+    config_shots: int | None,
+    algorithm: str | None = None,
 ) -> None:
     """
     Run all benchmarks in a category.
@@ -486,8 +596,9 @@ def _run_category_benchmarks(
         config_shots: Config-specified shots
         algorithm: Solution algorithm to use. If specified, only runs benchmarks that
                    support this algorithm (skips others). If None, uses the first
-                   algorithm in each benchmark's solution_algorithms list. This allows
-                   running a specific solution method across multiple benchmark cases.
+                   shipped closed algorithm in each benchmark's solution_algorithms
+                   list. This allows running a specific solution method across
+                   multiple benchmark cases.
     """
     click.echo(f"\nRunning benchmarks in category '{category}'...")
     click.echo(f"  Backend: {backend.name()}")
@@ -545,29 +656,67 @@ def _run_category_benchmarks(
     filtered_out_count = len(benchmark_cases) - len(filtered_cases)
     click.echo(f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})")
     click.echo(f"\nFound {len(filtered_cases)} benchmark(s) to run:")
+    available_runner_names = _get_available_runner_names(category, builtin, diy)
+    runnable_cases: list[tuple[dict, BenchmarkCase, str]] = []
+    open_skipped = 0
+    algorithm_filtered = 0
+
     for case_info in filtered_cases:
+        case_path = Path(case_info["file"])
+        try:
+            problem = BenchmarkCase.load_from_database(case_path)
+        except Exception as exc:
+            click.echo(f"Warning: Failed to load case {case_path.name}", err=True)
+            click.echo(f"Skipping case {case_path.name}: {exc}", err=True)
+            continue
+
+        if algorithm and algorithm not in problem.solution_algorithms:
+            algorithm_filtered += 1
+            continue
+
+        try:
+            runner_name = _select_solution_algorithm(problem, available_runner_names, algorithm)
+        except OpenBenchmarkError:
+            open_skipped += 1
+            continue
+        except BenchmarkError as exc:
+            click.echo(
+                f"\nError selecting algorithm for benchmark case '{problem.instance_name}': {exc}",
+                err=True,
+            )
+            raise SystemExit(1) from exc
+
+        runnable_cases.append((case_info, problem, runner_name))
+
+    filtered_out_count = len(benchmark_cases) - len(filtered_cases)
+    click.echo(
+        f"Found {filtered_out_count} benchmark(s) not to run (filtered by --qbit-max={qbit_max})"
+    )
+    if algorithm_filtered:
+        click.echo(
+            f"Found {algorithm_filtered} benchmark(s) not to run "
+            f"(filtered by --algorithm={algorithm})"
+        )
+    if open_skipped:
+        click.echo(
+            "Found "
+            f"{open_skipped} open benchmark case(s) not to run (require user-provided solvers)"
+        )
+    click.echo(f"\nFound {len(runnable_cases)} benchmark(s) to run:")
+    for case_info, _, _ in runnable_cases:
         click.echo(f"  - {case_info['name']} (UUID: {case_info['uuid']})")
     click.echo("")
 
     # Run all benchmarks
     results: list[BenchmarkSubmissionRecord] = []
-    total = len(filtered_cases)
+    total = len(runnable_cases)
 
-    for idx, case_info in enumerate(filtered_cases, 1):
-        case_path = Path(case_info["file"])
+    for idx, (case_info, problem, runner_name) in enumerate(runnable_cases, 1):
         case_name = case_info["name"]
 
         click.echo(f"[{idx}/{total}] Running {case_name}...", nl=False)
 
         try:
-            # Load problem instance
-            problem = BenchmarkCase.load_from_database(case_path)
-
-            runner_name = algorithm if algorithm else problem.solution_algorithms[0]
-            if algorithm and algorithm not in problem.solution_algorithms:
-                click.echo(f" skipped (algorithm '{algorithm}' not in {problem.solution_algorithms})")
-                continue
-
             # Load runner
             runner = _load_runner(category, runner_name)
 
@@ -592,7 +741,20 @@ def _run_category_benchmarks(
             import traceback
 
             traceback.print_exc()
-            raise SystemExit(1) from exc #should we continue ? TBD by SME
+            raise SystemExit(1) from exc  # should we continue ? TBD by SME
+
+    if open_skipped:
+        click.echo(
+            f"\nSkipped {open_skipped} open benchmark case(s) that require user-provided solvers."
+        )
+    if not results:
+        click.echo(
+            "\nError: no runnable closed benchmark cases matched. "
+            "The selected cases are tagged as open benchmarks or otherwise lack "
+            "shipped runners.",
+            err=True,
+        )
+        raise SystemExit(1)
 
     # Display results summary
     _display_category_results(results, category, backend.name(), resolved_shots)
@@ -671,9 +833,9 @@ def main() -> None:
     "--algorithm",
     type=str,
     default=None,
-    help="Solution algorithm to use when multiple are available (e.g., 'qft_lcu', 'lr_qaoa'). "
-         "Use this to select alternative algorithms for benchmark cases that support multiple solution methods. "
-         "Defaults to the first algorithm listed in the benchmark case.",
+    help="Solution algorithm to use when multiple are available (e.g., 'hidden_phase_qft', 'lr_qaoa'). "
+    "Use this to select alternative algorithms for benchmark cases that support multiple solution methods. "
+    "Defaults to the first shipped closed algorithm listed in the benchmark case.",
 )
 @click.pass_context
 def run(
@@ -711,7 +873,7 @@ def run(
 
     \b
     # Run a specific benchmark with a specific solution algorithm
-    apps-benchmark run --backend=qiskit --case-uuid=610cfb55 --algorithm=qft_lcu
+    apps-benchmark run --backend=qiskit --case-uuid=f75ae75f --algorithm=hidden_phase_qft
 
     \b
     # Save configuration
@@ -767,7 +929,7 @@ def run(
                 "version": "1.0",
                 "backend": backend,
                 "qbit_max": qbit_max,
-                "shots": cli_shots, #Only store explicit CLI shot count, not a derived or fallback count
+                "shots": cli_shots,  # Only store explicit CLI shot count, not a derived or fallback count
                 "category": category,
                 "case_uuid": case_uuid,
                 "algorithm": algorithm,
@@ -853,7 +1015,9 @@ def run(
     if case_uuid:
         _run_single_benchmark(backend_instance, case_uuid, cli_shots, config_shots, algorithm)
     elif category:
-        _run_category_benchmarks(backend_instance, category, qbit_max, cli_shots, config_shots, algorithm)
+        _run_category_benchmarks(
+            backend_instance, category, qbit_max, cli_shots, config_shots, algorithm
+        )
     # # TODO: Implement full benchmark run logic
     # if category:
     #     click.echo(f"Running benchmarks in category '{category}'")
@@ -932,8 +1096,23 @@ def list_resources(backends: bool, category: str | None) -> None:
             if category in builtin:
                 click.echo("  Built-in:")
                 info = builtin[category]
-                for runner in info.get("runners", []):
-                    click.echo(f"    - {runner}")
+                runners = info.get("runners", [])
+                if runners:
+                    for runner in runners:
+                        click.echo(f"    - {runner}")
+                else:
+                    click.echo("    - none")
+                open_algorithms = sorted(
+                    {
+                        algorithm
+                        for case in info.get("benchmark_cases", [])
+                        for algorithm in case.get("open_solution_algorithms", [])
+                    }
+                )
+                if open_algorithms:
+                    click.echo("  Open benchmark algorithms:")
+                    for algorithm in open_algorithms:
+                        click.echo(f"    - {algorithm}")
             if category in diy:
                 click.echo("  DIY:")
                 for benchmark_name in diy[category].keys():
@@ -946,10 +1125,24 @@ def list_resources(backends: bool, category: str | None) -> None:
                 click.echo(f"  - {cat}")
                 if cat in builtin:
                     info = builtin[cat]
+                    open_algorithms = sorted(
+                        {
+                            algorithm
+                            for case in info.get("benchmark_cases", [])
+                            for algorithm in case.get("open_solution_algorithms", [])
+                        }
+                    )
+                    open_case_count = sum(
+                        1
+                        for case in info.get("benchmark_cases", [])
+                        if case.get("open_solution_algorithms")
+                    )
                     click.echo(f"      Built-in runners: {len(info.get('runners', []))}")
                     click.echo(
                         f"      Built-in problem instances: {len(info.get('benchmark_cases', []))}"
                     )
+                    click.echo(f"      Open benchmark algorithms: {len(open_algorithms)}")
+                    click.echo(f"      Open benchmark instances: {open_case_count}")
                 if cat in diy:
                     click.echo(f"      DIY benchmarks: {len(diy[cat])}")
 

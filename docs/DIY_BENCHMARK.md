@@ -372,6 +372,11 @@ apps-benchmark run --backend=qiskit_aer_sim_backend --category=my_category --sho
 apps-benchmark run --backend=qiskit_aer_sim_backend --case-uuid=<uuid> --algorithm=my_algo
 ```
 
+If a benchmark case includes algorithms that are intentionally not shipped in
+this repo, add an `open_solution_algorithms` field to the case JSON. The CLI
+will list those algorithms as open benchmarks and require the user to provide
+their own solver instead of trying to import a missing runner.
+
 ## Advanced Topics
 
 ### Custom Optimization Loops
