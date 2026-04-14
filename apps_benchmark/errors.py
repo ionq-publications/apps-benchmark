@@ -72,6 +72,12 @@ class BenchmarkCaseError(BenchmarkError):
     pass
 
 
+class OpenBenchmarkError(BenchmarkError):
+    """Benchmark solver is intentionally not shipped and must be user-provided."""
+
+    pass
+
+
 # Config errors
 class ConfigError(AppsBenchmarkError):
     """Base class for configuration errors."""

@@ -159,5 +159,8 @@
     "qaoa",
     "lr_qaoa",
     "varqite"
+  ],
+  "open_solution_algorithms": [
+    "varqite"
   ]
 }

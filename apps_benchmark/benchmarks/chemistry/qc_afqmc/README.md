@@ -23,6 +23,9 @@ Each instance JSON follows the `BenchmarkCase` format:
 - `data.analysis` — trace extraction, equilibration, reblocking
 - `data.scoring` — merit function
 - `data.artifacts` — paths to HDF5 data files
+- `open_solution_algorithms` — benchmark solvers that are tagged as open and
+  therefore not shipped by apps-benchmark
+- `instance_id` — optional repo-specific identifier used for registry indexing
 
 ## Scoring
 
