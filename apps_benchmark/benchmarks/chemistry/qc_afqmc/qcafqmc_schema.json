@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "QC-AFQMC Public BenchmarkCase",
-  "description": "Public QC-AFQMC benchmark instance. The shipped JSON follows the BenchmarkCase-style format used in apps-benchmark: benchmark_category, problem_type, instance_name, num_qubits, solution_algorithms, and data. It intentionally omits instance_id, so maintainers can add that field later if they want registry-style indexing.",
+  "description": "Public QC-AFQMC benchmark instance. The shipped JSON follows the BenchmarkCase-style format used in apps-benchmark: benchmark_category, problem_type, instance_name, num_qubits, solution_algorithms, and data. apps-benchmark may add an optional instance_id for registry-style indexing.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -41,6 +41,15 @@
     "instance_id": {
       "type": "string",
       "pattern": "^[a-f0-9]{8}$"
+    },
+    "open_solution_algorithms": {
+      "type": "array",
+      "description": "Optional list of solution_algorithms that are tagged as open benchmarks and require a user-provided solver.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
     },
     "data": {
       "type": "object",

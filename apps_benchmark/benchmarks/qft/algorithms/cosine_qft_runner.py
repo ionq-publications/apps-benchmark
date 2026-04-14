@@ -11,8 +11,8 @@ import math
 from typing import Any
 
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QFT
 from qiskit.quantum_info.analysis import hellinger_fidelity
+from qiskit.synthesis.qft import synth_qft_full
 
 from apps_benchmark.core.backend import MeasurementBatch
 from apps_benchmark.core.qc_benchmark_runner import CircuitBenchmarkRunner
@@ -40,7 +40,7 @@ class CosineQftRunner(CircuitBenchmarkRunner):
             return [QuantumCircuit(num_qubits)]
 
         register_size = 2**num_qubits
-        qft_gate = QFT(num_qubits)
+        qft_circuit = synth_qft_full(num_qubits)
 
         shift = frequency_index + 1
         init_ket = (1 - 2 * shift) % register_size
@@ -58,13 +58,13 @@ class CosineQftRunner(CircuitBenchmarkRunner):
         qc.x(num_qubits - 1)
         qc.barrier()
 
-        qc.append(qft_gate, qc.qubits)
+        qc.compose(qft_circuit, qubits=qc.qubits, inplace=True)
 
         for qubit in range(num_qubits):
             divisor = 2 ** (num_qubits - 1 - qubit)
             qc.rz(shift * math.pi / divisor, qubit)
 
-        qc.append(qft_gate, qc.qubits)
+        qc.compose(qft_circuit, qubits=qc.qubits, inplace=True)
         return [qc.decompose(reps=2)]
 
     def merit_figures_from_measurements(

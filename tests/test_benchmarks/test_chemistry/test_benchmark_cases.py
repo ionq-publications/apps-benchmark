@@ -12,7 +12,6 @@ For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 from pathlib import Path
 
 import pytest
-
 from apps_benchmark.backends.qiskit_aer_sim_backend import QiskitAerSimBackend
 from apps_benchmark.benchmarks.chemistry.algorithms.vqe_puccd_runner import VqePuccdRunner
 from apps_benchmark.primitives.benchmark_case import BenchmarkCase

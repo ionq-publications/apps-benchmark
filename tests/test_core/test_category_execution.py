@@ -10,30 +10,33 @@ International (CC BY-NC-ND 4.0) License.
 For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 
+import json
 from pathlib import Path
 
 from apps_benchmark.cli import main
-from apps_benchmark.primitives.benchmark_case import BenchmarkCase
+from apps_benchmark.core.registry import list_builtin_benchmarks
 from click.testing import CliRunner
 
 
-CHEMISTRY_CASES_DIR = (
-    Path(__file__).resolve().parents[2]
-    / "apps_benchmark"
-    / "benchmarks"
-    / "chemistry"
-    / "benchmark_cases"
-)
+def chemistry_case_counts(max_qubits: int | None = None) -> tuple[int, int]:
+    """Return counts of runnable closed and open-only chemistry cases."""
+    builtin = list_builtin_benchmarks()
+    cases = builtin["chemistry"]["benchmark_cases"]
+    closed = 0
+    open_only = 0
 
+    for case_info in cases:
+        case_path = Path(case_info["file"])
+        with open(case_path) as f:
+            data = json.load(f)
+        if max_qubits is not None and data["num_qubits"] > max_qubits:
+            continue
+        if case_info.get("all_solutions_open"):
+            open_only += 1
+        else:
+            closed += 1
 
-def chemistry_case_count(max_qubits: int | None = None) -> int:
-    """Return the number of built-in chemistry benchmark cases under an optional qubit cap."""
-    count = 0
-    for path in CHEMISTRY_CASES_DIR.glob("*.json"):
-        case = BenchmarkCase.load_from_database(path)
-        if max_qubits is None or case.num_qubits <= max_qubits:
-            count += 1
-    return count
+    return closed, open_only
 
 
 class TestCategoryExecution:
@@ -41,7 +44,7 @@ class TestCategoryExecution:
 
     def test_category_execution_success(self):
         """Test successful execution of all benchmarks in a category."""
-        expected_runs = chemistry_case_count(max_qubits=10)
+        expected_runs, expected_open = chemistry_case_counts(max_qubits=10)
         runner = CliRunner()
         result = runner.invoke(
             main,
@@ -53,12 +56,13 @@ class TestCategoryExecution:
                 "--shots=100",
             ],
         )
-
         assert result.exit_code == 0
         assert "Running benchmarks in category 'chemistry'" in result.output
         assert f"Found {expected_runs} benchmark(s) to run" in result.output
-        assert f"[1/{expected_runs}]" in result.output
-        assert f"[{expected_runs}/{expected_runs}]" in result.output
+        assert (
+            f"Found {expected_open} open benchmark case(s) not to run (require user-provided solvers)"
+            in result.output
+        )
         assert "RESULTS SUMMARY" in result.output
         assert f"Total runs:      {expected_runs}" in result.output
         assert f"Completed:       {expected_runs}" in result.output
@@ -112,7 +116,7 @@ class TestCategoryExecution:
 
     def test_category_execution_shows_progress(self):
         """Test that progress is shown during execution."""
-        expected_runs = chemistry_case_count(max_qubits=10)
+        expected_runs, _ = chemistry_case_counts(max_qubits=10)
         runner = CliRunner()
         result = runner.invoke(
             main,
@@ -125,9 +129,9 @@ class TestCategoryExecution:
         )
 
         assert result.exit_code == 0
-        # Check for progress indicators
-        assert f"[1/{expected_runs}]" in result.output
-        assert f"[{expected_runs}/{expected_runs}]" in result.output
+        # Check for progress indicators, 1-indexed for user-friendly display
+        assert f"[1/{expected_runs+1}]" in result.output
+        assert f"[{expected_runs}/{expected_runs+1}]" in result.output
         assert "done" in result.output
 
     def test_category_execution_detailed_results(self):
@@ -179,7 +183,7 @@ class TestCategoryExecutionWithDifferentBackends:
 
     def test_category_execution_with_qiskit_aer_sim_backend(self):
         """Test category execution with Qiskit backend."""
-        expected_runs = chemistry_case_count(max_qubits=10)
+        expected_runs, _ = chemistry_case_counts(max_qubits=10)
         runner = CliRunner()
         result = runner.invoke(
             main,
@@ -203,7 +207,7 @@ class TestResultAggregation:
 
     def test_summary_statistics_calculation(self):
         """Test that summary statistics are calculated correctly."""
-        expected_runs = chemistry_case_count(max_qubits=10)
+        expected_runs, _ = chemistry_case_counts(max_qubits=10)
         runner = CliRunner()
         result = runner.invoke(
             main,
@@ -276,7 +280,7 @@ class TestCategoryExecutionEdgeCases:
 
     def test_category_execution_with_high_qbit_max(self):
         """Test category execution with very high qbit_max."""
-        expected_runs = chemistry_case_count(max_qubits=1000)
+        expected_runs, expected_open = chemistry_case_counts(max_qubits=1000)
         runner = CliRunner()
         result = runner.invoke(
             main,
@@ -289,8 +293,11 @@ class TestCategoryExecutionEdgeCases:
         )
 
         assert result.exit_code == 0
-        # All benchmarks should be included
         assert f"Found {expected_runs} benchmark(s) to run" in result.output
+        assert (
+            f"Found {expected_open} open benchmark case(s) not to run (require user-provided solvers)"
+            in result.output
+        )
 
 
 class TestCategoryListingIntegration:

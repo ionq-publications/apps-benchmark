@@ -362,6 +362,68 @@ class TestRunCommand:
         assert result.exit_code == 1
         assert "algorithm 'poop' not available" in result.output
 
+    def test_run_algorithm_open_solver_rejected(self, cli_runner, mock_home):
+        """Explicit open benchmark solvers should fail with a clear message."""
+        result = cli_runner.invoke(
+            main,
+            ["run", "--backend=mock_backend", "--case-uuid=98bc8a81", "--algorithm=varqite"],
+        )
+        assert result.exit_code == 1
+        assert "open benchmark solver" in result.output
+        assert "bring your own solver" in result.output
+
+    def test_run_open_benchmark_case_uuid_rejected_cleanly(self, cli_runner, mock_home):
+        """Open-only benchmark cases should fail before runner import."""
+        result = cli_runner.invoke(
+            main,
+            ["run", "--backend=mock_backend", "--case-uuid=b56cc063"],
+        )
+        assert result.exit_code == 1
+        assert "open benchmark" in result.output
+        assert "qc_afqmc" in result.output
+        assert "bring your own solver" in result.output
+
+    def test_run_open_qlbm_case_uuid_rejected_cleanly(self, cli_runner, mock_home):
+        """QLBM cases should be tagged as open benchmarks."""
+        result = cli_runner.invoke(
+            main,
+            ["run", "--backend=mock_backend", "--case-uuid=fe2e221a"],
+        )
+        assert result.exit_code == 1
+        assert "open benchmark" in result.output
+        assert "qlbm" in result.output
+        assert "bring your own solver" in result.output
+
+    def test_run_open_only_category_reports_clear_error(self, cli_runner, mock_home):
+        """Open-only selections should not die with an import error."""
+        result = cli_runner.invoke(
+            main,
+            [
+                "run",
+                "--backend=mock_backend",
+                "--category=chemistry",
+                "--algorithm=qc_afqmc",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "open benchmark" in result.output
+        assert "no runnable closed benchmark cases matched" in result.output
+
+    def test_run_open_qlbm_category_reports_clear_error(self, cli_runner, mock_home):
+        """QLBM category runs should fail cleanly without an import error."""
+        result = cli_runner.invoke(
+            main,
+            [
+                "run",
+                "--backend=mock_backend",
+                "--category=computational_fluid_dynamics",
+                "--qbit-max=20",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "open benchmark case" in result.output
+        assert "no runnable closed benchmark cases matched" in result.output
+
 
 class TestListCommand:
     """Tests for list command."""
@@ -439,8 +501,9 @@ class TestListCommand:
         # Should show builtin categories discovered on-the-fly (e.g., chemistry)
         # and DIY category
         assert "optimization" in result.output
-        assert "Built-in runners: 1" in result.output
-        assert "Built-in problem instances: 2" in result.output
+        assert "Built-in runners:" in result.output
+        assert "Built-in problem instances:" in result.output
+        assert "Open benchmark algorithms:" in result.output
         assert "DIY benchmarks: 1" in result.output
 
     def test_list_specific_category(self, cli_runner, mock_home):
@@ -467,6 +530,23 @@ class TestListCommand:
         assert "my_vqe" in result.output
         assert "DIY:" in result.output
         assert "my_vqe" in result.output
+        assert "Open benchmark algorithms:" in result.output
+
+    def test_list_open_benchmark_category(self, cli_runner, mock_home):
+        """Open benchmark categories should advertise tagged ghost algorithms."""
+        result = cli_runner.invoke(main, ["list", "--category=chemistry"])
+        assert result.exit_code == 0
+        assert "Benchmarks in category 'chemistry':" in result.output
+        assert "Open benchmark algorithms:" in result.output
+        assert "qc_afqmc" in result.output
+
+    def test_list_open_qlbm_category(self, cli_runner, mock_home):
+        """QLBM categories should advertise tagged open algorithms."""
+        result = cli_runner.invoke(main, ["list", "--category=computational_fluid_dynamics"])
+        assert result.exit_code == 0
+        assert "Benchmarks in category 'computational_fluid_dynamics':" in result.output
+        assert "Open benchmark algorithms:" in result.output
+        assert "qlbm" in result.output
 
     def test_list_qft_category(self, cli_runner, mock_home):
         """Smoke test listing the built-in qft category."""
@@ -476,6 +556,7 @@ class TestListCommand:
         assert "Built-in:" in result.output
         assert "cosine_qft" in result.output
         assert "hidden_phase_qft" in result.output
+        assert "qft_lcu" not in result.output
 
 
 class TestAddCommand:
