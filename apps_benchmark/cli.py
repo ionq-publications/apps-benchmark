@@ -444,7 +444,6 @@ def _run_single_benchmark(
         # Show available algorithms and which one will be used
         if len(problem.solution_algorithms) > 1:
             click.echo(f"  Available algorithms: {', '.join(problem.solution_algorithms)}")
-            click.echo(f"  Using algorithm: {runner_name}")
             if not algorithm:
                 click.echo("  ℹ  Use --algorithm to select a different solution algorithm")
         else:
