@@ -271,7 +271,7 @@ def _load_backend(backend_name: str) -> AbstractBackend:
         raise BackendError(f"Failed to load backend '{backend_name}': {exc}") from exc
 
 
-def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str] | None:
+def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str, str] | None:
     """
     Find benchmark case file by UUID in built-in and DIY benchmarks.
 
@@ -279,14 +279,17 @@ def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str] | None:
         uuid: Benchmark case UUID to find
 
     Returns:
-        Tuple of (problem_path, category) or None if not found
+        Tuple of (problem_path, category, runner_name) or None if not found
     """
     # Search built-in benchmarks
     builtin = list_builtin_benchmarks()
     for category, info in builtin.items():
         for case_info in info.get("benchmark_cases", []):
             if case_info.get("uuid") == uuid:
-                return (Path(case_info["file"]), category)
+                case_path = Path(case_info["file"])
+                benchmark_case = BenchmarkCase.load_from_database(case_path)
+                runner_name = benchmark_case.solution_algorithms[0]
+                return (case_path, category, runner_name)
 
     # Search DIY benchmarks
     diy = list_diy_benchmarks()
@@ -295,7 +298,7 @@ def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str] | None:
             for case_info in runner_info.get("benchmark_cases", []):
                 if case_info.get("uuid") == uuid:
                     case_file = Path(case_info["file"])
-                    return (case_file, category)
+                    return (case_file, category, runner_name)
 
     return None
 
@@ -429,7 +432,7 @@ def _run_single_benchmark(
         click.echo(f"Error: Benchmark case '{uuid}' not found", err=True)
         raise SystemExit(1)
 
-    problem_path, category = result
+    problem_path, category, _default_runner_name = result
     click.echo(f"✓ Found: {problem_path.name} (category: {category})")
 
     # Load problem instance

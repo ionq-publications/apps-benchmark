@@ -68,13 +68,15 @@ def test_case_uuid_lookup_is_stable() -> None:
     assert mnist_lookup is not None
     assert shark_lookup is not None
 
-    mnist_path, mnist_category = mnist_lookup
-    shark_path, shark_category = shark_lookup
+    mnist_path, mnist_category, mnist_runner = mnist_lookup
+    shark_path, shark_category, shark_runner = shark_lookup
 
     assert mnist_path == IMAGE_LOADING_CASES / "mnist_5.json"
     assert shark_path == IMAGE_LOADING_CASES / "imagenet_sketch_shark.json"
     assert mnist_category == "image_loading"
     assert shark_category == "image_loading"
+    assert mnist_runner == "image_loading"
+    assert shark_runner == "image_loading"
 
 
 def test_image_loading_asset_hashes_match_manifest() -> None:

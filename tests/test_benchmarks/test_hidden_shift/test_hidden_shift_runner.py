@@ -145,9 +145,10 @@ def test_hidden_shift_uuid_lookup_resolves_new_category() -> None:
     result = _find_benchmark_case_by_uuid("83af7cf5")
 
     assert result is not None
-    problem_path, category = result
+    problem_path, category, runner_name = result
     assert problem_path == HIDDEN_SHIFT_CASES / "hsbp_06_qubit_cx_ladder_challenge.json"
     assert category == "hidden_shift"
+    assert runner_name == "hidden_shift"
 
 
 def test_hidden_shift_benchmark_cases_are_well_formed() -> None:
