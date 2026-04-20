@@ -81,10 +81,12 @@ class TrotterizedEvolutionRunner(CircuitBenchmarkRunner):
         Qe = round(lepton_charge(counts_dict), 10)
 
         # Compute the deviation from noiseless simulation values
-        score = abs(L - Lsim)
+        signed_lepton_number_error = L - Lsim
+        score = abs(signed_lepton_number_error)
 
         return {
             "score": score,
+            "signed_lepton_number_error": signed_lepton_number_error,
             "lepton_number": L,
             "lepton_charge": Qe,
             "reference_lepton_number": Lsim,
