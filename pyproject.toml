@@ -3,7 +3,7 @@ name = "apps-benchmark"
 version = "1.0.0"
 description = "IonQ Quantum Application Benchmarking Framework"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = "CC-BY-NC-ND-4.0"
 authors = [
     {name = "IonQ Applications Team", email = "apps@ionq.com"}
@@ -13,6 +13,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -97,7 +98,7 @@ addopts = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
 src = ["apps_benchmark", "tests"]
 exclude = [
     ".git",
@@ -126,7 +127,7 @@ line-ending = "lf"
 docstring-code-format = true
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
