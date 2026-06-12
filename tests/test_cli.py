@@ -532,7 +532,7 @@ class TestListCommand:
         assert "Open benchmark algorithms:" in result.output
 
     def test_list_open_benchmark_category(self, cli_runner, mock_home):
-        """Open benchmark categories should advertise tagged ghost algorithms."""
+        """Open benchmark categories should advertise tagged open algorithms."""
         result = cli_runner.invoke(main, ["list", "--category=chemistry"])
         assert result.exit_code == 0
         assert "Benchmarks in category 'chemistry':" in result.output

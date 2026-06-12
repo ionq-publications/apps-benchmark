@@ -9,16 +9,25 @@ International (CC BY-NC-ND 4.0) License.
 For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 """
 
-import importlib
-import importlib.util
 import json
 from pathlib import Path
-from typing import cast
 
 import click
 
+from apps_benchmark.core import execution as execution_helpers
 from apps_benchmark.core.backend import AbstractBackend
 from apps_benchmark.core.benchmark import AbstractAlgoRunner, BenchmarkSubmissionRecord
+from apps_benchmark.core.execution import (
+    DEFAULT_SHOTS_PER_QC,
+    classify_solution_algorithms,
+    find_benchmark_case_by_uuid,
+    get_available_runner_names,
+    get_shots_for_case,
+    load_backend,
+    load_runner,
+    resolve_shots,
+    select_solution_algorithm,
+)
 from apps_benchmark.core.registry import (
     initialize_registries,
     list_builtin_backends,
@@ -40,7 +49,7 @@ from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 from apps_benchmark.utils.cli_config import load_cli_config, save_cli_config
 from apps_benchmark.utils.config import get_config_file_path, get_local_dev_dir_from_config
 
-_DEFAULT_SHOTS_PER_QC = 1000
+_DEFAULT_SHOTS_PER_QC = DEFAULT_SHOTS_PER_QC
 
 
 def _resolve_shots(
@@ -48,38 +57,16 @@ def _resolve_shots(
     config_set_shots: int | None,
     benchmark_set_shots: int | None,
 ) -> int:
-    """ "
-    Shot count gets a little weird. Priority order for shot count is:
-        1. User-specified CLI shots (if provided)
-        2. Config file shots (if provided)
-        3. Benchmark-specific recommended shots (if provided in benchmark metadata)
-        4. Default shots (1000)
-    """
-    if cli_set_shots is not None:
-        click.echo(f"Shots per circuit set by user: {cli_set_shots}")
-        return cli_set_shots  # CLI user set value overrides all else
-    elif config_set_shots is not None:
-        click.echo(f"Shots per circuit set by config: {config_set_shots}")
-        return config_set_shots  # config create from a past CLI run , 2nd priority
-    elif benchmark_set_shots is not None:
-        click.echo(f"Shots per circuit set per benchmark: {benchmark_set_shots}")
-        return benchmark_set_shots  # benchmark-specific recommended shots, 3rd priority
-    click.echo(f"Shots per circuit falls to default: {_DEFAULT_SHOTS_PER_QC}")
-    return _DEFAULT_SHOTS_PER_QC  # default shots, lowest priority
+    return resolve_shots(
+        user_shots=cli_set_shots,
+        config_shots=config_set_shots,
+        benchmark_shots=benchmark_set_shots,
+        reporter=click.echo,
+    )
 
 
 def _get_shots_for_case(bm_case: BenchmarkCase) -> int | None:
-    """get shots for a benchmark. None, or an integer >= 1."""
-    configured_shots = bm_case.data.get("recommended_minimum_shots_per_qc")
-    if configured_shots is not None:
-        config_shots = int(configured_shots)
-        if config_shots <= 0:
-            raise ValueError(
-                f"Error: shots in BenchmarkCase '{bm_case.instance_name}' must be a positive integer. "
-                f"Got {config_shots}"
-            )
-        return config_shots
-    return None
+    return get_shots_for_case(bm_case)
 
 
 def _get_available_runner_names(
@@ -87,39 +74,14 @@ def _get_available_runner_names(
     builtin_benchmarks: dict[str, dict] | None = None,
     diy_benchmarks: dict[str, dict] | None = None,
 ) -> set[str]:
-    """Return all shipped runner names for a category."""
-    if builtin_benchmarks is None:
-        builtin_benchmarks = list_builtin_benchmarks()
-    if diy_benchmarks is None:
-        diy_benchmarks = list_diy_benchmarks()
-
-    runner_names: set[str] = set()
-    if category in builtin_benchmarks:
-        runner_names.update(builtin_benchmarks[category].get("runners", []))
-    if category in diy_benchmarks:
-        runner_names.update(diy_benchmarks[category].keys())
-    return runner_names
+    return get_available_runner_names(category, builtin_benchmarks, diy_benchmarks)
 
 
 def _classify_solution_algorithms(
     benchmark_case: BenchmarkCase,
     available_runner_names: set[str],
 ) -> tuple[list[str], list[str], list[str]]:
-    """Partition algorithms into open, shipped, and unmarked ghost entries."""
-    open_algorithms = benchmark_case.open_solution_algorithms or []
-    open_algorithm_set = set(open_algorithms)
-
-    shipped_algorithms = [
-        algorithm
-        for algorithm in benchmark_case.solution_algorithms
-        if algorithm not in open_algorithm_set and algorithm in available_runner_names
-    ]
-    ghost_algorithms = [
-        algorithm
-        for algorithm in benchmark_case.solution_algorithms
-        if algorithm not in open_algorithm_set and algorithm not in available_runner_names
-    ]
-    return open_algorithms, shipped_algorithms, ghost_algorithms
+    return classify_solution_algorithms(benchmark_case, available_runner_names)
 
 
 def _select_solution_algorithm(
@@ -127,279 +89,37 @@ def _select_solution_algorithm(
     available_runner_names: set[str],
     requested_algorithm: str | None = None,
 ) -> str:
-    """Choose a runnable algorithm or raise a clear open-benchmark error."""
-    open_algorithms, shipped_algorithms, ghost_algorithms = _classify_solution_algorithms(
-        benchmark_case, available_runner_names
+    return select_solution_algorithm(
+        benchmark_case,
+        available_runner_names,
+        requested_algorithm,
     )
-
-    if requested_algorithm is not None:
-        if requested_algorithm not in benchmark_case.solution_algorithms:
-            raise BenchmarkError(
-                f"algorithm '{requested_algorithm}' not available for this problem. "
-                f"Choose from: {benchmark_case.solution_algorithms}"
-            )
-        if requested_algorithm in open_algorithms:
-            raise OpenBenchmarkError(
-                f"algorithm '{requested_algorithm}' for case '{benchmark_case.instance_name}' "
-                "is tagged as an open benchmark solver. apps-benchmark does not ship "
-                "this solver; bring your own solver."
-            )
-        if requested_algorithm in ghost_algorithms:
-            raise BenchmarkError(
-                f"algorithm '{requested_algorithm}' is listed for case "
-                f"'{benchmark_case.instance_name}' but no built-in or DIY runner is "
-                "registered. Mark it in open_solution_algorithms if this is intentional."
-            )
-        return requested_algorithm
-
-    if shipped_algorithms:
-        return shipped_algorithms[0]
-
-    if open_algorithms:
-        raise OpenBenchmarkError(
-            f"case '{benchmark_case.instance_name}' is tagged as an open benchmark. "
-            "apps-benchmark does not ship solvers for: "
-            f"{', '.join(open_algorithms)}. Bring your own solver."
-        )
-
-    if ghost_algorithms:
-        raise BenchmarkError(
-            f"case '{benchmark_case.instance_name}' lists algorithms with no shipped runners: "
-            f"{', '.join(ghost_algorithms)}. Mark them in open_solution_algorithms if "
-            "they are intentionally bring-your-own-solver benchmarks."
-        )
-
-    raise BenchmarkError(
-        f"case '{benchmark_case.instance_name}' does not define any runnable solution algorithms."
-    )
-
-
-# hacky but unblocks timeline
-def _get_ionq_backend_api_key() -> str:
-    """
-    Get IonQ API key from environment variable.
-
-    Returns:
-        API key string
-    """
-    import os
-
-    API_KEY = os.getenv("IONQ_API_KEY")
-    if not API_KEY:
-        raise BackendError("IONQ_API_KEY environment variable not set")
-    return API_KEY
 
 
 def _load_backend(backend_name: str) -> AbstractBackend:
-    """
-    Load a backend by name from the registry.
-
-    Args:
-        backend_name: Name of backend to load
-
-    Returns:
-        Backend instance
-
-    Raises:
-        BackendNotFoundError: If backend not found in registry
-        BackendError: If backend fails to load
-    """
-    # Get backend registries
-    builtin_backends = list_builtin_backends()
-    diy_backends = list_diy_backends()
-
-    # Search in both builtin and DIY backends
-    backend_info = None
-    if backend_name in builtin_backends:
-        backend_info = builtin_backends[backend_name]
-    elif backend_name in diy_backends:
-        backend_info = diy_backends[backend_name]
-    else:
-        # Backend not found
-        all_backends = [*builtin_backends.keys()] + [*diy_backends.keys()]
-        # ^ avoiding a weird python dict_keys unpacking bug -fm
-        available = ", ".join(all_backends)
-        raise BackendNotFoundError(
-            f"Backend '{backend_name}' not found in registry.\n"
-            f"Available backends: {available if available else 'none'}\n"
-            f"Use 'apps-benchmark add --backend <name>' to register a DIY backend."
-        )
-
-    # Load backend module
-    try:
-        if backend_info["builtin"]:
-            # Built-in backend - import from apps_benchmark.backends
-            module_name = str(backend_info["module"])
-            module = importlib.import_module(module_name)
-        else:
-            # DIY backend - load from file path
-            module_path = Path(str(backend_info["module"]))
-            spec = importlib.util.spec_from_file_location(backend_name, module_path)
-            if spec is None or spec.loader is None:
-                raise BackendError(f"Failed to load module from {module_path}")
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-        # Get backend class
-        backend_class = getattr(module, backend_info["class"])
-        if backend_name == "ionq_cloud_backend":
-            ## hacky way to do this, fix later -fm
-            ##   Pattern in the old repo (legacy):
-            # Step 1: Create provider and get backend
-            from qiskit_ionq import IonQProvider
-
-            API_KEY = _get_ionq_backend_api_key()
-            ionq_provider = IonQProvider(token=API_KEY)
-            ionq_sim = ionq_provider.get_backend("simulator")
-
-            # Optional: set noise model, for this release forte-1 only
-            ionq_sim.set_options(noise_model="forte-1")
-
-            # Step 2: Pass the backend to IonQCloudBackend
-            # backend_instance = IonQCloudBackend(target=ionq_sim, optimization_level=1)
-
-            backend_instance = backend_class(ionq_sim, optimization_level=1)
-        else:
-            # Instantiate backend
-            backend_class = cast(type[AbstractBackend], getattr(module, str(backend_info["class"])))
-            backend_instance = backend_class()
-
-        return cast(AbstractBackend, backend_instance)
-
-    except Exception as exc:
-        raise BackendError(f"Failed to load backend '{backend_name}': {exc}") from exc
+    return load_backend(backend_name)
 
 
 def _find_benchmark_case_by_uuid(uuid: str) -> tuple[Path, str, str] | None:
-    """
-    Find benchmark case file by UUID in built-in and DIY benchmarks.
-
-    Args:
-        uuid: Benchmark case UUID to find
-
-    Returns:
-        Tuple of (problem_path, category, runner_name) or None if not found
-    """
-    # Search built-in benchmarks
-    builtin = list_builtin_benchmarks()
-    for category, info in builtin.items():
-        for case_info in info.get("benchmark_cases", []):
-            if case_info.get("uuid") == uuid:
-                case_path = Path(case_info["file"])
-                benchmark_case = BenchmarkCase.load_from_database(case_path)
-                runner_name = benchmark_case.solution_algorithms[0]
-                return (case_path, category, runner_name)
-
-    # Search DIY benchmarks
-    diy = list_diy_benchmarks()
-    for category, runners in diy.items():
-        for runner_name, runner_info in runners.items():
-            for case_info in runner_info.get("benchmark_cases", []):
-                if case_info.get("uuid") == uuid:
-                    case_file = Path(case_info["file"])
-                    return (case_file, category, runner_name)
-
-    return None
+    result = find_benchmark_case_by_uuid(uuid)
+    if result is None:
+        return None
+    case_path, category = result
+    benchmark_case = BenchmarkCase.load_from_database(case_path)
+    runner_name = benchmark_case.solution_algorithms[0]
+    return case_path, category, runner_name
 
 
 def _load_diy_runner(category: str, runner_name: str, runner_info: dict) -> AbstractAlgoRunner:
-    """
-    Load a DIY runner from local_dev.
-
-    Args:
-        category: Benchmark category (e.g., "chemistry-x")
-        runner_name: Runner name (e.g., "fqe_puccd")
-        runner_info: Runner metadata from DIY registry
-
-    Returns:
-        Instantiated runner
-
-    Raises:
-        BenchmarkError: If runner cannot be loaded
-    """
-    import importlib
-
-    runner_module_path = Path(runner_info["runner_module"])
-    runner_class_name = runner_info["runner_class"]
-
-    try:
-        # Use a module path that matches the expected pattern for benchmark_category extraction
-        module_name = f"local_dev.benchmarks.{category}.algorithms.{runner_name}_runner"
-        spec = importlib.util.spec_from_file_location(module_name, runner_module_path)
-        if spec is None or spec.loader is None:
-            raise BenchmarkError(
-                f"Failed to load spec for DIY runner '{runner_name}' from {runner_module_path}"
-            )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        runner_class = cast(type[AbstractAlgoRunner], getattr(module, runner_class_name))
-        return runner_class()
-    except Exception as exc:
-        raise BenchmarkError(
-            f"Failed to load DIY runner '{runner_name}' from category '{category}': {exc}"
-        ) from exc
+    return execution_helpers._load_diy_runner(category, runner_name, runner_info)
 
 
 def _load_builtin_runner(category: str, runner_name: str) -> AbstractAlgoRunner:
-    """
-    Load a built-in runner from apps_benchmark.benchmarks.
-
-    Args:
-        category: Benchmark category (e.g., "chemistry")
-        runner_name: Runner name (e.g., "vqe_puccd")
-
-    Returns:
-        Instantiated runner
-
-    Raises:
-        BenchmarkError: If runner cannot be loaded
-    """
-    import importlib
-
-    from apps_benchmark.utils.file_ops import snake_to_camel
-
-    # Convert runner name to class name
-    class_name = snake_to_camel(runner_name) + "Runner"
-
-    try:
-        module_name = f"apps_benchmark.benchmarks.{category}.algorithms.{runner_name}_runner"
-        module = importlib.import_module(module_name)
-        runner_class = cast(type[AbstractAlgoRunner], getattr(module, class_name))
-        return runner_class()
-    except Exception as exc:
-        raise BenchmarkError(
-            f"Failed to load runner '{runner_name}' from category '{category}': {exc}"
-        ) from exc
+    return execution_helpers._load_builtin_runner(category, runner_name)
 
 
 def _load_runner(category: str, runner_name: str) -> AbstractAlgoRunner:
-    """
-    Load algorithm runner by category and name from built-in or DIY benchmarks.
-
-    Tries to load from built-in benchmarks first, then falls back to DIY benchmarks.
-
-    Args:
-        category: Benchmark category (e.g., "chemistry")
-        runner_name: Runner name (e.g., "vqe_puccd")
-
-    Returns:
-        Instantiated runner
-
-    Raises:
-        BenchmarkError: If runner not found in either built-in or DIY
-    """
-    # First, try to load from built-in benchmarks
-    try:
-        return _load_builtin_runner(category, runner_name)
-    except BenchmarkError:
-        # If built-in fails, check if this is a DIY benchmark
-        diy = list_diy_benchmarks()
-        if category in diy and runner_name in diy[category]:
-            runner_info = diy[category][runner_name]
-            return _load_diy_runner(category, runner_name, runner_info)
-
-        # If neither built-in nor DIY found, raise the original error
-        raise
+    return load_runner(category, runner_name)
 
 
 def _run_single_benchmark(
@@ -453,7 +173,7 @@ def _run_single_benchmark(
         raise SystemExit(1) from exc
 
     available_runner_names = _get_available_runner_names(category)
-    open_algorithms, _, ghost_algorithms = _classify_solution_algorithms(
+    open_algorithms, _, unregistered_algorithms = _classify_solution_algorithms(
         problem, available_runner_names
     )
     if len(problem.solution_algorithms) > 1:
@@ -464,8 +184,11 @@ def _run_single_benchmark(
         click.echo(
             f"  Open benchmark algorithms: {', '.join(open_algorithms)} (bring your own solver)"
         )
-    if ghost_algorithms:
-        click.echo(f"  Warning: algorithms missing shipped runners: {', '.join(ghost_algorithms)}")
+    if unregistered_algorithms:
+        click.echo(
+            "  Warning: algorithms missing registered runners: "
+            f"{', '.join(unregistered_algorithms)}"
+        )
 
     try:
         runner_name = _select_solution_algorithm(problem, available_runner_names, algorithm)

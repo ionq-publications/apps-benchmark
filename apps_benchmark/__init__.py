@@ -13,6 +13,7 @@ For details, visit: https://creativecommons.org/licenses/by-nc-nd/4.0/
 __version__ = "1.0.0"
 
 # Export commonly used classes
+from apps_benchmark.benchmarker import Benchmarker
 from apps_benchmark.core.backend import AbstractAsyncBackend, AbstractBackend, JobStatus
 from apps_benchmark.core.benchmark import AbstractAlgoRunner, BenchmarkSubmissionRecord
 from apps_benchmark.errors import (
@@ -26,6 +27,7 @@ from apps_benchmark.primitives.benchmark_case import BenchmarkCase
 
 __all__ = [
     "__version__",
+    "Benchmarker",
     "AbstractBackend",
     "AbstractAsyncBackend",
     "JobStatus",
